@@ -60,15 +60,19 @@ int main() {
     while(server > 0)
     {
         memset(buffer, 0, buffer_size);
-        recv(server, buffer, buffer_size, 0);
+        int bytes_received = recv(server, buffer, buffer_size, 0);
+        if(bytes_received <= 0)
+        {
+            cout << "client disconnected ......... " << endl;
+            break;
+        }
         cout << "client : " << buffer << endl;
         cout << "server : ";
         memset(buffer, 0, buffer_size);
         cin.getline(buffer, buffer_size);
         send(server, buffer, strlen(buffer), 0);
     }
-    cout << "client disconnected ......... " << endl;
-    // close(server);
+    close(server);
     close(client);
     return 0;
 }
