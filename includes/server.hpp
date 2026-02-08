@@ -3,7 +3,7 @@
 
 
 #include "ft_irc.hpp"
-#include "Client.hpp"
+#include "client.hpp"
 
 class Server
 {
