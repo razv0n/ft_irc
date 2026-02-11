@@ -3,9 +3,10 @@
 
 
 #include "ft_irc.hpp"
-#include "client.hpp"
 #include <vector>
 #include <map>
+
+class client;
 
 class Server
 {
@@ -14,7 +15,7 @@ class Server
     int port;
     std::string password;
     std::vector<struct pollfd> poll_fds;
-    std::map<int, client> clients;
+    std::map<int, client*> clients;
     public:
         Server(int port, const std::string& password);
         ~Server();
