@@ -1,6 +1,6 @@
 #ifndef FT_IRC_HPP
 # define FT_IRC_HPP
-
+#include <poll.h>
 #include <string>
 #include <cstring>
 #include <cstdlib>

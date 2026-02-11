@@ -17,3 +17,8 @@ int main()
     std::cout << "connected successfuly!" << std::endl;
     close(clientsocket);
 }
+
+
+
+// containers   // vector, map                // algorithms      // template
+// 

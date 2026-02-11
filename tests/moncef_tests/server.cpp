@@ -11,8 +11,9 @@ int main()
     int serversocket = socket(AF_INET, SOCK_STREAM, 0);
      struct sockaddr_in server{}; 
      
-     server.sin_family = AF_INET; // version IP wich is mean v4
-     server.sin_port = htons(1234); // for right reading the port for big endien and little endien we can use any port that big than 1024 less than it u should have root access LLLLOOLL //!binding socket
+    server.sin_family = AF_INET; // version IP wich is mean v4
+    
+    server.sin_port = htons(1234); // for right reading the port for big endien and little endien we can use any port that big than 1024 less than it u should have root access LLLLOOLL //!binding socket
     server.sin_addr.s_addr = INADDR_ANY;
     bind(serversocket, reinterpret_cast<sockaddr *>(&server), sizeof(server)); // binding the socket with the ip and port
     // bind we go for listen
