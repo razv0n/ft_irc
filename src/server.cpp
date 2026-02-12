@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   server.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mowardan <mowardan@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/02/12 09:23:10 by mowardan          #+#    #+#             */
+/*   Updated: 2026/02/12 09:23:12 by mowardan         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "server.hpp"
 
 
@@ -32,7 +44,9 @@ void Server::run()
     {
         throw std::runtime_error("listen failed");
     }
-
+    // Allow reuse of address/port (prevents "Address already in use" error)
+    int opt = 1;
+    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
     struct pollfd server_pollfd;
     server_pollfd.fd = server_fd;
     server_pollfd.events = POLLIN;
@@ -82,7 +96,7 @@ void Server::run()
                     else 
                     {
                         std::string data(buffer, bytes_received);
-                        std::cout << "Received from client " << client_fd << ": " << data << std::endl;
+                        std::cout << "Received from client " << client_fd << ": " << data ;
                     }
                 }
             }
