@@ -12,9 +12,9 @@
 
 #include "../includes/client.hpp"
 
-client::client(int fd)
-    : client_fd(fd), is_registered(false), pass_ok(false), nick_ok(false),
-      user_ok(false) {}
+client::client(int fd) : client_fd(fd), is_registered(false), pass_ok(false), nick_ok(false), user_ok(false) {
+
+}
 
 client::~client() {
   if (client_fd != -1)
@@ -34,7 +34,7 @@ std::string client::extractCommand() {
   buffer.erase(0, pos + 1);
 
   if (cmd.length() > 1 && cmd[cmd.length() - 2] == '\r')
-    cmd.erase(cmd.length() - 2, 1);
+    cmd.erase(cmd.length() - 2, 2);
   else if (cmd.length() > 0 && cmd[cmd.length() - 1] == '\n')
     cmd.erase(cmd.length() - 1, 1);
 

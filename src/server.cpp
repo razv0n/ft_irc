@@ -52,10 +52,8 @@ void Server::run()
     server_pollfd.events = POLLIN;
     server_pollfd.revents = 0;
     poll_fds.push_back(server_pollfd);
-    std::cout << "POLLIN: " << POLLIN << std::endl;
     while (true)
     {
-        // TODO: use poll to handle multiple clients
         int poll_count = poll(&poll_fds[0], poll_fds.size(), -1);
         if (poll_count == -1) 
         {
@@ -102,7 +100,6 @@ void Server::run()
                         std::string cmd;
                         while ((cmd = clients[client_fd]->extractCommand()) != "")
                         {
-                            std::cout << "cmd : " << cmd << std::endl;
                             std::cout << "Extracted command from " << client_fd << ": " << cmd << std::endl;
                             handleCommand(client_fd, cmd);
                         }
@@ -136,8 +133,6 @@ void Server::handleCommand(int client_fd, const std::string& command)
         return;
 
     std::string cmd = tokens[0];
-    for (size_t i = 0; i < cmd.length(); ++i)
-        cmd[i] = std::toupper(cmd[i]);
 
     if (cmd == "PASS")
         handlePass(client_fd, tokens);
@@ -146,14 +141,33 @@ void Server::handleCommand(int client_fd, const std::string& command)
     else if (cmd == "USER")
         handleUser(client_fd, tokens);
     else
-        std::cout << "Unknown command: " << cmd << std::endl;
+    {
+        std::string msg = "Unknown command : " + cmd + "\n";
+        send(client_fd, msg.c_str(), msg.length(), 0);
+    }
 }
 
 void Server::handlePass(int client_fd, const std::vector<std::string>& tokens)
 {
-    (void)client_fd;
-    (void)tokens;
-    std::cout << "TODO: Handle PASS" << std::endl;
+    if (tokens.size() != 2)
+    {
+        std::string msg = "Usage: PASS <password>\n";
+        send(client_fd, msg.c_str(), msg.length(), 0);
+        return;
+    }
+    if (clients[client_fd]->getPassOk())
+    {
+        std::string msg = "You are already registered\n";
+        send(client_fd, msg.c_str(), msg.length(), 0);
+        return;
+    }
+    if (tokens[1] != password)
+    {
+        std::string msg = "Password is incorrect\n";
+        send(client_fd, msg.c_str(), msg.length(), 0);
+        return;
+    }
+    clients[client_fd]->setPassOk(true);
 }
 
 void Server::handleNick(int client_fd, const std::vector<std::string>& tokens)
