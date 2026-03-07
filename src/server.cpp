@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mowardan <mowardan@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mfahmi <mfahmi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/12 09:23:10 by mowardan          #+#    #+#             */
-/*   Updated: 2026/03/02 13:58:06 by helfatih         ###   ########.fr       */
+/*   Updated: 2026/03/07 20:16:59 by mfahmi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,6 @@ void Server::run()
         throw std::runtime_error("listen failed");
     }
 
-    // Allow reuse of address/port (prevents "Address already in use" error)
     int opt = 1;
     setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
     struct pollfd server_pollfd;
@@ -84,7 +83,6 @@ void Server::run()
                 } 
                 else 
                 {
-                    // TODO each client should has a buffer to keep track it;
                     int client_fd = poll_fds[i].fd;
                     char buffer[1024];
                     ssize_t bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
