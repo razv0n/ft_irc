@@ -1,5 +1,5 @@
 #ifndef FT_IRC_HPP
-#define FT_IRC_HPP
+# define FT_IRC_HPP
 
 #include <poll.h>
 #include <string>
@@ -12,11 +12,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netdb.h>
-#include <vector>
-#include <map>
-#include <algorithm>
-
-#include "client.hpp"
 #include "server.hpp"
+#include "client.hpp"
 
 #endif
