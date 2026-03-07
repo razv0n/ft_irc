@@ -31,6 +31,12 @@ class client
 		void setUserOk(bool status);
 		bool isRegistered() const;
 		void setRegistered(bool status);
+		void setNick(const std::string& nick);
+		std::string getNick() const;
+		void setUsername(const std::string& username);
+		std::string getUsername() const;
+		void setRealname(const std::string& realname);
+		std::string getRealname() const;
 };
 
 #endif
