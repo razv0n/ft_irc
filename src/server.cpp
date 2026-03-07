@@ -6,7 +6,7 @@
 /*   By: mfahmi <mfahmi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/12 09:23:10 by mowardan          #+#    #+#             */
-/*   Updated: 2026/03/07 20:16:59 by mfahmi           ###   ########.fr       */
+/*   Updated: 2026/03/07 22:47:24 by mfahmi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,7 +138,7 @@ void Server::handleCommand(int client_fd, const std::string& command)
         handlePass(client_fd, tokens);
     else if (cmd == "NICK")
         handleNick(client_fd, tokens);
-    else if (cmd == "USER")
+    else if (cmd == "   ")
         handleUser(client_fd, tokens);
     else
     {
