@@ -72,3 +72,22 @@ bool client::isRegistered() const {
 void client::setRegistered(bool status) {
     is_registered = status; 
 }
+
+void client::setNick(const std::string& nick) {
+    nickname = nick;
+}
+std::string client::getNick() const {
+    return nickname;
+}
+void client::setUsername(const std::string& username) {
+    this->username = username;
+}
+std::string client::getUsername() const {
+    return username;
+}
+void client::setRealname(const std::string& realname) {
+    this->realname = realname;
+}
+std::string client::getRealname() const {
+    return realname;
+}

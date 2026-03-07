@@ -102,7 +102,6 @@ void Server::run()
                         std::string cmd;
                         while ((cmd = clients[client_fd]->extractCommand()) != "")
                         {
-                            std::cout << "Extracted command from " << client_fd << ": " << cmd << std::endl;
                             handleCommand(client_fd, cmd);
                         }
                     }
@@ -174,14 +173,53 @@ void Server::handlePass(int client_fd, const std::vector<std::string>& tokens)
 
 void Server::handleNick(int client_fd, const std::vector<std::string>& tokens)
 {
-    (void)client_fd;
-    (void)tokens;
-    std::cout << "TODO: Handle NICK" << std::endl;
+    if (tokens.size() != 2) {
+        std::string msg = "Usage: NICK <nickname>\n";
+        send(client_fd, msg.c_str(), msg.length(), 0);
+        return;
+    }
+    if (clients[client_fd]->getNickOk()) {
+        std::string msg = "You are already registered\n";
+        send(client_fd, msg.c_str(), msg.length(), 0);
+        return;
+    }
+    if (clients[client_fd]->getPassOk() == false)
+    {
+        std::string msg = "You are not registered\n";
+        send(client_fd, msg.c_str(), msg.length(), 0);
+        return;
+    }
+    clients[client_fd]->setNick(tokens[1]);
+    clients[client_fd]->setNickOk(true);
 }
 
 void Server::handleUser(int client_fd, const std::vector<std::string>& tokens)
 {
-    (void)client_fd;
-    (void)tokens;
-    std::cout << "TODO: Handle USER" << std::endl;
+    if (tokens.size() != 5)
+    {
+        std::string msg = "Usage: USER <username> <hostname> <servername> <realname>\n";
+        send(client_fd, msg.c_str(), msg.length(), 0);
+        return;
+    }
+    if (clients[client_fd]->getUserOk())
+    {
+        std::string msg = "You are already registered\n";
+        send(client_fd, msg.c_str(), msg.length(), 0);
+        return;
+    }
+    if (clients[client_fd]->getNickOk() == false)
+    {
+        std::string msg = "You are not registered\n";
+        send(client_fd, msg.c_str(), msg.length(), 0);
+        return;
+    }
+    clients[client_fd]->setUsername(tokens[1]);
+    clients[client_fd]->setRealname(tokens[4]);
+    clients[client_fd]->setUserOk(true);
+    if (clients[client_fd]->getPassOk() && clients[client_fd]->getNickOk() && clients[client_fd]->getUserOk())
+    {
+        clients[client_fd]->setRegistered(true);
+        std::string msg = "Welcome " + clients[client_fd]->getNick() + "!\n";
+        send(client_fd, msg.c_str(), msg.length(), 0);
+    }
 }
