@@ -1,18 +1,19 @@
 #ifndef CLIENT_HPP
-# define CLIENT_HPP
+#define CLIENT_HPP
 
-#include "ft_irc.hpp"
+#include <string>
 
 class client
 {
-    private:
+private:
     int client_fd;
     std::string nickname;
     std::string username;
     std::string realname;
-    public:
-        client(int fd);
-        ~client();
+
+public:
+    client(int fd);
+    ~client();
 };
 
 #endif

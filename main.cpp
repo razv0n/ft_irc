@@ -6,7 +6,7 @@
 /*   By: mowardan <mowardan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/12 09:23:27 by mowardan          #+#    #+#             */
-/*   Updated: 2026/02/12 09:23:29 by mowardan         ###   ########.fr       */
+/*   Updated: 2026/03/07 01:44:39 by mowardan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,9 +30,11 @@ int main(int ac, char **av)
         std::cerr << "Password cannot be empty" << std::endl;
         return 1;
     }
-
     int port_num = std::atoi(port.c_str());
-
+    if (port_num <= 0) {
+        std::cerr << "Invalid port number" << std::endl;
+        return 1;
+    }
     try{
         Server server(port_num, password);
         server.run();
