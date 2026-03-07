@@ -138,8 +138,6 @@ void Server::handleCommand(int client_fd, const std::string& command)
         return;
 
     std::string cmd = tokens[0];
-    for (size_t i = 0; i < cmd.length(); ++i)
-        cmd[i] = std::toupper(cmd[i]);
 
     if (cmd == "PASS")
         handlePass(client_fd, tokens);
@@ -148,7 +146,10 @@ void Server::handleCommand(int client_fd, const std::string& command)
     else if (cmd == "USER")
         handleUser(client_fd, tokens);
     else
-        std::cout << "Unknown command: " << cmd << std::endl;
+    {
+        std::string msg = "Unknown command : " + cmd + "\n";
+        send(client_fd, msg.c_str(), msg.length(), 0);
+    }
 }
 
 void Server::handlePass(int client_fd, const std::vector<std::string>& tokens)
