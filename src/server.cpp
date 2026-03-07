@@ -55,7 +55,6 @@ void Server::run()
     poll_fds.push_back(server_pollfd);
     while (true)
     {
-        std::cout << "Heloo world!" << std::endl;
         int poll_count = poll(&poll_fds[0], poll_fds.size(), -1);
         if (poll_count == -1) 
         {
