@@ -151,9 +151,25 @@ void Server::handleCommand(int client_fd, const std::string& command)
 
 void Server::handlePass(int client_fd, const std::vector<std::string>& tokens)
 {
-    (void)client_fd;
-    (void)tokens;
-    std::cout << "TODO: Handle PASS" << std::endl;
+    if (tokens.size() != 2)
+    {
+        std::string msg = "Usage: PASS <password>\n";
+        send(client_fd, msg.c_str(), msg.length(), 0);
+        return;
+    }
+    if (clients[client_fd]->getPassOk())
+    {
+        std::string msg = "You are already registered\n";
+        send(client_fd, msg.c_str(), msg.length(), 0);
+        return;
+    }
+    if (tokens[1] != password)
+    {
+        std::string msg = "Password is incorrect\n";
+        send(client_fd, msg.c_str(), msg.length(), 0);
+        return;
+    }
+    clients[client_fd]->setPassOk(true);
 }
 
 void Server::handleNick(int client_fd, const std::vector<std::string>& tokens)
