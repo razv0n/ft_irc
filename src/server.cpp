@@ -53,10 +53,9 @@ void Server::run()
     server_pollfd.events = POLLIN;
     server_pollfd.revents = 0;
     poll_fds.push_back(server_pollfd);
-    std::cout << "POLLIN: " << POLLIN << std::endl;
     while (true)
     {
-        // TODO: use poll to handle multiple clients
+        std::cout << "Heloo world!" << std::endl;
         int poll_count = poll(&poll_fds[0], poll_fds.size(), -1);
         if (poll_count == -1) 
         {
@@ -104,7 +103,6 @@ void Server::run()
                         std::string cmd;
                         while ((cmd = clients[client_fd]->extractCommand()) != "")
                         {
-                            std::cout << "cmd : " << cmd << std::endl;
                             std::cout << "Extracted command from " << client_fd << ": " << cmd << std::endl;
                             handleCommand(client_fd, cmd);
                         }
