@@ -6,7 +6,7 @@
 /*   By: mfahmi <mfahmi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/12 09:23:10 by mowardan          #+#    #+#             */
-/*   Updated: 2026/03/08 08:07:33 by mfahmi           ###   ########.fr       */
+/*   Updated: 2026/03/08 08:18:10 by mfahmi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,13 +37,8 @@ void Server::run()
     server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     server_addr.sin_port = htons(port);
     int opt = 1;
-<<<<<<< HEAD
      setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
     if(bind(server_fd, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr)) == -1) 
-=======
-    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-    if (bind(server_fd, reinterpret_cast<sockaddr *>(&server_addr), sizeof(server_addr)) == -1)
->>>>>>> 91229dcc406c3d2a5067dd25a1ee25878db1c423
     {
         throw std::runtime_error("bind failed");
     }
@@ -52,12 +47,8 @@ void Server::run()
         throw std::runtime_error("listen failed");
     }
 
-<<<<<<< HEAD
     // int opt = 1;
     // setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-=======
-    // Allow reuse of address/port (prevents "Address already in use" error)
->>>>>>> 91229dcc406c3d2a5067dd25a1ee25878db1c423
     struct pollfd server_pollfd;
     server_pollfd.fd = server_fd;
     server_pollfd.events = POLLIN;
@@ -89,48 +80,31 @@ void Server::run()
                     client_pollfd.events = POLLIN;
                     client_pollfd.revents = 0;
                     poll_fds.push_back(client_pollfd);
-<<<<<<< HEAD
                     clientsFds[client_fd] = new client(client_fd);
                 } 
                 else 
-=======
-                    clients[client_fd] = new client(client_fd);
-                }
-                else
->>>>>>> 91229dcc406c3d2a5067dd25a1ee25878db1c423
                 {
                     int client_fd = poll_fds[i].fd;
                     char buffer[1024];
                     ssize_t bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
                     if (bytes_received <= 0)
                     {
-<<<<<<< HEAD
                         close(client_fd);
                         delete clientsFds[client_fd];
                         clientsFds.erase(client_fd);
-=======
-                        // close(client_fd); ana bazghoro hadi khasha t7ayed hit kandeletew client o kaytclosa fd f destructer
-                        delete clients[client_fd];
-                        clients.erase(client_fd);
->>>>>>> 91229dcc406c3d2a5067dd25a1ee25878db1c423
                         poll_fds.erase(poll_fds.begin() + i);
                         --i;
                     }
                     else
                     {
                         std::string data(buffer, bytes_received);
-<<<<<<< HEAD
                         clientsFds[client_fd]->appendToBuffer(data);
                         
-=======
-                        clients[client_fd]->appendToBuffer(data);
-
->>>>>>> 91229dcc406c3d2a5067dd25a1ee25878db1c423
                         std::string cmd;
                         while ((cmd = clientsFds[client_fd]->extractCommand()) != "")
                         {
                             handleCommand(client_fd, cmd);
-                            if (clients.find(client_fd) == clients.end())
+                            if (clientsFds.find(client_fd) == clientsFds.end())
                                 break;
                         }
                     }
@@ -142,9 +116,9 @@ void Server::run()
 
 Server::~Server()
 {
-    for (std::map<int, client *>::iterator it = clients.begin(); it != clients.end(); ++it)
+    for (std::map<int, client *>::iterator it = clientsFds.begin(); it != clientsFds.end(); ++it)
         delete it->second;
-    clients.clear();
+    clientsFds.clear();
     if (server_fd != -1)
         close(server_fd);
 }
@@ -297,8 +271,8 @@ void Server::handleQuit(int client_fd, const std::string &command)
 
 void Server::removeClient(int client_fd)
 {
-    delete clients[client_fd];
-    clients.erase(client_fd);
+    delete clientsFds[client_fd];
+    clientsFds.erase(client_fd);
     for (size_t i = 0; i < poll_fds.size(); ++i)
     {
         if (poll_fds[i].fd == client_fd)
