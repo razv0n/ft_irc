@@ -266,6 +266,7 @@ void Server::handleQuit(int client_fd, const std::string &command)
 
 void Server::removeClient(int client_fd)
 {
+    std::cout << "Client " << clients[client_fd]->getNick() << " disconnected: " << std::endl;
     delete clients[client_fd];
     clients.erase(client_fd);
     for (size_t i = 0; i < poll_fds.size(); ++i)
