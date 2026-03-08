@@ -6,7 +6,7 @@
 /*   By: mfahmi <mfahmi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/12 09:23:10 by mowardan          #+#    #+#             */
-/*   Updated: 2026/03/08 07:50:52 by mfahmi           ###   ########.fr       */
+/*   Updated: 2026/03/08 08:07:33 by mfahmi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 #include <iostream>
 #include "../includes/client.hpp"
 
-Server::Server(int port, const std::string& password)
+Server::Server(int port, const std::string &password)
 {
     server_fd = -1;
     this->port = port;
@@ -25,9 +25,9 @@ Server::Server(int port, const std::string& password)
 void Server::run()
 {
     // TODO: implement the server loop
-    
+
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if(server_fd == -1) 
+    if (server_fd == -1)
     {
         throw std::runtime_error("socket creation failed");
     }
@@ -37,18 +37,27 @@ void Server::run()
     server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     server_addr.sin_port = htons(port);
     int opt = 1;
+<<<<<<< HEAD
      setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
     if(bind(server_fd, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr)) == -1) 
+=======
+    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    if (bind(server_fd, reinterpret_cast<sockaddr *>(&server_addr), sizeof(server_addr)) == -1)
+>>>>>>> 91229dcc406c3d2a5067dd25a1ee25878db1c423
     {
         throw std::runtime_error("bind failed");
     }
-    if(listen(server_fd, 128) == -1) 
+    if (listen(server_fd, 128) == -1)
     {
         throw std::runtime_error("listen failed");
     }
 
+<<<<<<< HEAD
     // int opt = 1;
     // setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+=======
+    // Allow reuse of address/port (prevents "Address already in use" error)
+>>>>>>> 91229dcc406c3d2a5067dd25a1ee25878db1c423
     struct pollfd server_pollfd;
     server_pollfd.fd = server_fd;
     server_pollfd.events = POLLIN;
@@ -57,19 +66,19 @@ void Server::run()
     while (true)
     {
         int poll_count = poll(&poll_fds[0], poll_fds.size(), -1);
-        if (poll_count == -1) 
+        if (poll_count == -1)
         {
             throw std::runtime_error("poll failed");
         }
-        for (size_t i = 0; i < poll_fds.size(); ++i) 
+        for (size_t i = 0; i < poll_fds.size(); ++i)
         {
-            if (poll_fds[i].revents == POLLIN)
+            if (poll_fds[i].revents && POLLIN)
             {
-                if (poll_fds[i].fd == server_fd) 
+                if (poll_fds[i].fd == server_fd)
                 {
                     struct sockaddr_in client_addr;
                     socklen_t client_len = sizeof(client_addr);
-                    int client_fd = accept(server_fd, reinterpret_cast<sockaddr*>(&client_addr), &client_len);
+                    int client_fd = accept(server_fd, reinterpret_cast<sockaddr *>(&client_addr), &client_len);
                     if (client_fd == -1)
                     {
                         std::cerr << "accept failed" << std::endl;
@@ -78,31 +87,51 @@ void Server::run()
                     struct pollfd client_pollfd;
                     client_pollfd.fd = client_fd;
                     client_pollfd.events = POLLIN;
+                    client_pollfd.revents = 0;
                     poll_fds.push_back(client_pollfd);
+<<<<<<< HEAD
                     clientsFds[client_fd] = new client(client_fd);
                 } 
                 else 
+=======
+                    clients[client_fd] = new client(client_fd);
+                }
+                else
+>>>>>>> 91229dcc406c3d2a5067dd25a1ee25878db1c423
                 {
                     int client_fd = poll_fds[i].fd;
                     char buffer[1024];
                     ssize_t bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
-                    if (bytes_received <= 0) 
+                    if (bytes_received <= 0)
                     {
+<<<<<<< HEAD
                         close(client_fd);
                         delete clientsFds[client_fd];
                         clientsFds.erase(client_fd);
+=======
+                        // close(client_fd); ana bazghoro hadi khasha t7ayed hit kandeletew client o kaytclosa fd f destructer
+                        delete clients[client_fd];
+                        clients.erase(client_fd);
+>>>>>>> 91229dcc406c3d2a5067dd25a1ee25878db1c423
                         poll_fds.erase(poll_fds.begin() + i);
                         --i;
-                    } 
-                    else 
+                    }
+                    else
                     {
                         std::string data(buffer, bytes_received);
+<<<<<<< HEAD
                         clientsFds[client_fd]->appendToBuffer(data);
                         
+=======
+                        clients[client_fd]->appendToBuffer(data);
+
+>>>>>>> 91229dcc406c3d2a5067dd25a1ee25878db1c423
                         std::string cmd;
                         while ((cmd = clientsFds[client_fd]->extractCommand()) != "")
                         {
                             handleCommand(client_fd, cmd);
+                            if (clients.find(client_fd) == clients.end())
+                                break;
                         }
                     }
                 }
@@ -113,11 +142,14 @@ void Server::run()
 
 Server::~Server()
 {
+    for (std::map<int, client *>::iterator it = clients.begin(); it != clients.end(); ++it)
+        delete it->second;
+    clients.clear();
     if (server_fd != -1)
         close(server_fd);
 }
 
-std::vector<std::string> Server::splitCommand(const std::string& cmd)
+std::vector<std::string> Server::splitCommand(const std::string &cmd)
 {
     std::vector<std::string> tokens;
     std::istringstream iss(cmd);
@@ -127,7 +159,7 @@ std::vector<std::string> Server::splitCommand(const std::string& cmd)
     return tokens;
 }
 
-void Server::handleCommand(int client_fd, const std::string& command)
+void Server::handleCommand(int client_fd, const std::string &command)
 {
     std::vector<std::string> tokens = splitCommand(command);
     if (tokens.empty())
@@ -135,7 +167,11 @@ void Server::handleCommand(int client_fd, const std::string& command)
 
     std::string cmd = tokens[0];
 
-    if (cmd == "PASS")
+    if (cmd == "PING")
+        handlePing(client_fd, tokens);
+    else if (cmd == "QUIT")
+        handleQuit(client_fd, command);
+    else if (cmd == "PASS")
         handlePass(client_fd, tokens);
     else if (cmd == "NICK")
         handleNick(client_fd, tokens);
@@ -148,7 +184,7 @@ void Server::handleCommand(int client_fd, const std::string& command)
     }
 }
 
-void Server::handlePass(int client_fd, const std::vector<std::string>& tokens)
+void Server::handlePass(int client_fd, const std::vector<std::string> &tokens)
 {
     if (tokens.size() != 2)
     {
@@ -171,9 +207,10 @@ void Server::handlePass(int client_fd, const std::vector<std::string>& tokens)
     clientsFds[client_fd]->setPassOk(true);
 }
 
-void Server::handleNick(int client_fd, const std::vector<std::string>& tokens)
+void Server::handleNick(int client_fd, const std::vector<std::string> &tokens)
 {
-    if (tokens.size() != 2) {
+    if (tokens.size() != 2)
+    {
         std::string msg = "Usage: NICK <nickname>\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
@@ -197,13 +234,9 @@ void Server::handleNick(int client_fd, const std::vector<std::string>& tokens)
     clientsName[tokens[1]] = clientsFds[client_fd];
     clientsFds[client_fd]->setNickOk(true);
     clientsFds[client_fd]->setNick(tokens[1]);
-    // tokens[1] is the name of the user 
-    // client_fd
-    // clientsFds[client_fd]->setNick(tokens[1]);
-    // clientsFds[client_fd]->setNickOk(true);
 }
 
-void Server::handleUser(int client_fd, const std::vector<std::string>& tokens)
+void Server::handleUser(int client_fd, const std::vector<std::string> &tokens)
 {
     if (tokens.size() != 5)
     {
@@ -231,5 +264,47 @@ void Server::handleUser(int client_fd, const std::vector<std::string>& tokens)
         clientsFds[client_fd]->setRegistered(true);
         std::string msg = "Welcome " + clientsFds[client_fd]->getNick() + "!\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
+    }
+}
+
+void Server::handlePing(int client_fd, const std::vector<std::string> &tokens)
+{
+    if (tokens.size() < 2)
+    {
+        std::string msg = "PING :Not enough parameters\r\n";
+        send(client_fd, msg.c_str(), msg.length(), 0);
+        return;
+    }
+    std::string param = tokens[1];
+    if (param[0] == ':')
+        param = param.substr(1);
+    std::string msg = ":ircserv PONG ircserv :" + param + "\r\n";
+    send(client_fd, msg.c_str(), msg.length(), 0);
+}
+
+void Server::handleQuit(int client_fd, const std::string &command)
+{
+    // Parse quit message: everything after "QUIT" and optional ":"
+    std::string quit_msg = "Client quit";
+    size_t pos = command.find(':');
+    if (pos != std::string::npos)
+        quit_msg = command.substr(pos + 1);
+
+    // TODO: later when channels are implemented,
+    // notify all channel members about the quit
+    removeClient(client_fd);
+}
+
+void Server::removeClient(int client_fd)
+{
+    delete clients[client_fd];
+    clients.erase(client_fd);
+    for (size_t i = 0; i < poll_fds.size(); ++i)
+    {
+        if (poll_fds[i].fd == client_fd)
+        {
+            poll_fds.erase(poll_fds.begin() + i);
+            break;
+        }
     }
 }
