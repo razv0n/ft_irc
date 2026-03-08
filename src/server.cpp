@@ -6,7 +6,7 @@
 /*   By: mfahmi <mfahmi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/12 09:23:10 by mowardan          #+#    #+#             */
-/*   Updated: 2026/03/08 08:56:18 by mfahmi           ###   ########.fr       */
+/*   Updated: 2026/03/08 22:05:06 by mfahmi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -143,8 +143,9 @@ void Server::handleCommand(int client_fd, const std::string &command)
 
     if (cmd == "PING")
         handlePing(client_fd, tokens);
-    else if (cmd == "QUIT")
+    else if (cmd == "QUIT") {
         handleQuit(client_fd, command);
+    }
     else if (cmd == "PASS")
         handlePass(client_fd, tokens);
     else if (cmd == "NICK")
@@ -158,6 +159,11 @@ void Server::handleCommand(int client_fd, const std::string &command)
     }
 }
 
+// TODO split the cmd to the folders and structure the data 
+// TODO handle the user in the right way (ask some info)  check the ping pong and why it is exist
+// TODO how join start with it and why that is 
+// TODO start on the join and room cmd
+// TODO add some debug on the server 7l9 3lih
 void Server::handlePass(int client_fd, const std::vector<std::string> &tokens)
 {
     if (tokens.size() != 2)
@@ -179,6 +185,7 @@ void Server::handlePass(int client_fd, const std::vector<std::string> &tokens)
         return;
     }
     clientsFds[client_fd]->setPassOk(true);
+    send(client_fd,"the Password is correct\n",20,0);
 }
 
 void Server::handleNick(int client_fd, const std::vector<std::string> &tokens)
@@ -214,7 +221,7 @@ void Server::handleUser(int client_fd, const std::vector<std::string> &tokens)
 {
     if (tokens.size() != 5)
     {
-        std::string msg = "Usage: USER <username> <hostname> <servername> <realname>\n";
+        std::string msg = "Usage: USER <username> <hostname> <servername>: <realname>\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
@@ -232,13 +239,10 @@ void Server::handleUser(int client_fd, const std::vector<std::string> &tokens)
     }
     clientsFds[client_fd]->setUsername(tokens[1]);
     clientsFds[client_fd]->setRealname(tokens[4]);
-    clientsFds[client_fd]->setUserOk(true);
-    if (clientsFds[client_fd]->getPassOk() && clientsFds[client_fd]->getNickOk() && clientsFds[client_fd]->getUserOk())
-    {
+    clientsFds[client_fd]->setUserOk(true); // we dont need to check this USEROK mean the setregistred is ok :>
         clientsFds[client_fd]->setRegistered(true);
         std::string msg = "Welcome " + clientsFds[client_fd]->getNick() + "!\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
-    }
 }
 
 void Server::handlePing(int client_fd, const std::vector<std::string> &tokens)
@@ -271,6 +275,7 @@ void Server::handleQuit(int client_fd, const std::string &command)
 
 void Server::removeClient(int client_fd)
 {
+    close(client_fd);
     delete clientsFds[client_fd];
     clientsFds.erase(client_fd);
     for (size_t i = 0; i < poll_fds.size(); ++i)
