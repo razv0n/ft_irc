@@ -47,8 +47,6 @@ void Server::run()
         throw std::runtime_error("listen failed");
     }
 
-    // int opt = 1;
-    // setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
     struct pollfd server_pollfd;
     server_pollfd.fd = server_fd;
     server_pollfd.events = POLLIN;
@@ -266,6 +264,7 @@ void Server::handleQuit(int client_fd, const std::string &command)
 
     // TODO: later when channels are implemented,
     // notify all channel members about the quit
+
     removeClient(client_fd);
 }
 
