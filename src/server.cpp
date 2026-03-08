@@ -139,7 +139,9 @@ void Server::handleCommand(int client_fd, const std::string &command)
 
     std::string cmd = tokens[0];
 
-    if (cmd == "PASS")
+    if (cmd == "PING")
+        handlePing(client_fd, tokens);
+    else if (cmd == "PASS")
         handlePass(client_fd, tokens);
     else if (cmd == "NICK")
         handleNick(client_fd, tokens);
@@ -228,4 +230,19 @@ void Server::handleUser(int client_fd, const std::vector<std::string> &tokens)
         std::string msg = "Welcome " + clients[client_fd]->getNick() + "!\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
     }
+}
+
+void Server::handlePing(int client_fd, const std::vector<std::string> &tokens)
+{
+    if (tokens.size() < 2)
+    {
+        std::string msg = "PING :Not enough parameters\r\n";
+        send(client_fd, msg.c_str(), msg.length(), 0);
+        return;
+    }
+    std::string param = tokens[1];
+    if (param[0] == ':')
+        param = param.substr(1);
+    std::string msg = ":ircserv PONG ircserv :" + param + "\r\n";
+    send(client_fd, msg.c_str(), msg.length(), 0);
 }
