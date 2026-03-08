@@ -104,6 +104,8 @@ void Server::run()
                         while ((cmd = clients[client_fd]->extractCommand()) != "")
                         {
                             handleCommand(client_fd, cmd);
+                            if (clients.find(client_fd) == clients.end())
+                                break;
                         }
                     }
                 }
@@ -141,6 +143,8 @@ void Server::handleCommand(int client_fd, const std::string &command)
 
     if (cmd == "PING")
         handlePing(client_fd, tokens);
+    else if (cmd == "QUIT")
+        handleQuit(client_fd, command);
     else if (cmd == "PASS")
         handlePass(client_fd, tokens);
     else if (cmd == "NICK")
@@ -245,4 +249,31 @@ void Server::handlePing(int client_fd, const std::vector<std::string> &tokens)
         param = param.substr(1);
     std::string msg = ":ircserv PONG ircserv :" + param + "\r\n";
     send(client_fd, msg.c_str(), msg.length(), 0);
+}
+
+void Server::handleQuit(int client_fd, const std::string &command)
+{
+    // Parse quit message: everything after "QUIT" and optional ":"
+    std::string quit_msg = "Client quit";
+    size_t pos = command.find(':');
+    if (pos != std::string::npos)
+        quit_msg = command.substr(pos + 1);
+
+    // TODO: later when channels are implemented,
+    // notify all channel members about the quit
+    removeClient(client_fd);
+}
+
+void Server::removeClient(int client_fd)
+{
+    delete clients[client_fd];
+    clients.erase(client_fd);
+    for (size_t i = 0; i < poll_fds.size(); ++i)
+    {
+        if (poll_fds[i].fd == client_fd)
+        {
+            poll_fds.erase(poll_fds.begin() + i);
+            break;
+        }
+    }
 }

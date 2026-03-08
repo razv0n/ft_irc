@@ -26,6 +26,8 @@ public:
 	void handleNick(int client_fd, const std::vector<std::string> &tokens);
 	void handleUser(int client_fd, const std::vector<std::string> &tokens);
 	void handlePing(int client_fd, const std::vector<std::string> &tokens);
+	void handleQuit(int client_fd, const std::string &command);
+	void removeClient(int client_fd);
 	std::vector<std::string> splitCommand(const std::string &cmd);
 };
 
