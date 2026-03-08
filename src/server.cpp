@@ -15,7 +15,7 @@
 #include <iostream>
 #include "../includes/client.hpp"
 
-Server::Server(int port, const std::string& password)
+Server::Server(int port, const std::string &password)
 {
     server_fd = -1;
     this->port = port;
@@ -25,9 +25,9 @@ Server::Server(int port, const std::string& password)
 void Server::run()
 {
     // TODO: implement the server loop
-    
+
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if(server_fd == -1) 
+    if (server_fd == -1)
     {
         throw std::runtime_error("socket creation failed");
     }
@@ -36,18 +36,18 @@ void Server::run()
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     server_addr.sin_port = htons(port);
-    if(bind(server_fd, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr)) == -1) 
+    int opt = 1;
+    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    if (bind(server_fd, reinterpret_cast<sockaddr *>(&server_addr), sizeof(server_addr)) == -1)
     {
         throw std::runtime_error("bind failed");
     }
-    if(listen(server_fd, 128) == -1) 
+    if (listen(server_fd, 128) == -1)
     {
         throw std::runtime_error("listen failed");
     }
 
     // Allow reuse of address/port (prevents "Address already in use" error)
-    int opt = 1;
-    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
     struct pollfd server_pollfd;
     server_pollfd.fd = server_fd;
     server_pollfd.events = POLLIN;
@@ -56,19 +56,19 @@ void Server::run()
     while (true)
     {
         int poll_count = poll(&poll_fds[0], poll_fds.size(), -1);
-        if (poll_count == -1) 
+        if (poll_count == -1)
         {
             throw std::runtime_error("poll failed");
         }
-        for (size_t i = 0; i < poll_fds.size(); ++i) 
+        for (size_t i = 0; i < poll_fds.size(); ++i)
         {
-            if (poll_fds[i].revents == POLLIN)
+            if (poll_fds[i].revents && POLLIN)
             {
-                if (poll_fds[i].fd == server_fd) 
+                if (poll_fds[i].fd == server_fd)
                 {
                     struct sockaddr_in client_addr;
                     socklen_t client_len = sizeof(client_addr);
-                    int client_fd = accept(server_fd, reinterpret_cast<sockaddr*>(&client_addr), &client_len);
+                    int client_fd = accept(server_fd, reinterpret_cast<sockaddr *>(&client_addr), &client_len);
                     if (client_fd == -1)
                     {
                         std::cerr << "accept failed" << std::endl;
@@ -77,28 +77,29 @@ void Server::run()
                     struct pollfd client_pollfd;
                     client_pollfd.fd = client_fd;
                     client_pollfd.events = POLLIN;
+                    client_pollfd.revents = 0;
                     poll_fds.push_back(client_pollfd);
                     clients[client_fd] = new client(client_fd);
-                } 
-                else 
+                }
+                else
                 {
                     // TODO each client should has a buffer to keep track it;
                     int client_fd = poll_fds[i].fd;
                     char buffer[1024];
                     ssize_t bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
-                    if (bytes_received <= 0) 
+                    if (bytes_received <= 0)
                     {
-                        close(client_fd);
+                        // close(client_fd); ana bazghoro hadi khasha t7ayed hit kandeletew client o kaytclosa fd f destructer
                         delete clients[client_fd];
                         clients.erase(client_fd);
                         poll_fds.erase(poll_fds.begin() + i);
                         --i;
-                    } 
-                    else 
+                    }
+                    else
                     {
                         std::string data(buffer, bytes_received);
                         clients[client_fd]->appendToBuffer(data);
-                        
+
                         std::string cmd;
                         while ((cmd = clients[client_fd]->extractCommand()) != "")
                         {
@@ -113,11 +114,14 @@ void Server::run()
 
 Server::~Server()
 {
+    for (std::map<int, client *>::iterator it = clients.begin(); it != clients.end(); ++it)
+        delete it->second;
+    clients.clear();
     if (server_fd != -1)
         close(server_fd);
 }
 
-std::vector<std::string> Server::splitCommand(const std::string& cmd)
+std::vector<std::string> Server::splitCommand(const std::string &cmd)
 {
     std::vector<std::string> tokens;
     std::istringstream iss(cmd);
@@ -127,7 +131,7 @@ std::vector<std::string> Server::splitCommand(const std::string& cmd)
     return tokens;
 }
 
-void Server::handleCommand(int client_fd, const std::string& command)
+void Server::handleCommand(int client_fd, const std::string &command)
 {
     std::vector<std::string> tokens = splitCommand(command);
     if (tokens.empty())
@@ -148,7 +152,7 @@ void Server::handleCommand(int client_fd, const std::string& command)
     }
 }
 
-void Server::handlePass(int client_fd, const std::vector<std::string>& tokens)
+void Server::handlePass(int client_fd, const std::vector<std::string> &tokens)
 {
     if (tokens.size() != 2)
     {
@@ -171,14 +175,16 @@ void Server::handlePass(int client_fd, const std::vector<std::string>& tokens)
     clients[client_fd]->setPassOk(true);
 }
 
-void Server::handleNick(int client_fd, const std::vector<std::string>& tokens)
+void Server::handleNick(int client_fd, const std::vector<std::string> &tokens)
 {
-    if (tokens.size() != 2) {
+    if (tokens.size() != 2)
+    {
         std::string msg = "Usage: NICK <nickname>\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
-    if (clients[client_fd]->getNickOk()) {
+    if (clients[client_fd]->getNickOk())
+    {
         std::string msg = "You are already registered\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
@@ -193,7 +199,7 @@ void Server::handleNick(int client_fd, const std::vector<std::string>& tokens)
     clients[client_fd]->setNickOk(true);
 }
 
-void Server::handleUser(int client_fd, const std::vector<std::string>& tokens)
+void Server::handleUser(int client_fd, const std::vector<std::string> &tokens)
 {
     if (tokens.size() != 5)
     {
