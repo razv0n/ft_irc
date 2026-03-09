@@ -6,7 +6,7 @@
 /*   By: mfahmi <mfahmi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/12 09:23:10 by mowardan          #+#    #+#             */
-/*   Updated: 2026/03/08 22:05:06 by mfahmi           ###   ########.fr       */
+/*   Updated: 2026/03/09 08:22:36 by mfahmi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,8 +47,6 @@ void Server::run()
         throw std::runtime_error("listen failed");
     }
 
-    // int opt = 1;
-    // setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
     struct pollfd server_pollfd;
     server_pollfd.fd = server_fd;
     server_pollfd.events = POLLIN;
@@ -126,10 +124,20 @@ Server::~Server()
 std::vector<std::string> Server::splitCommand(const std::string &cmd)
 {
     std::vector<std::string> tokens;
-    std::istringstream iss(cmd);
+    std::string last_token = "";
+    std::string cmd_token = cmd;
+    size_t find = cmd.find(":");
+
+    if(find != std::string::npos)
+    {
+        last_token = cmd.substr(find + 1);
+        cmd_token = cmd.substr(0, find);
+    }
+    std::istringstream iss(cmd_token);
     std::string token;
     while (iss >> token)
         tokens.push_back(token);
+    tokens.push_back(last_token);
     return tokens;
 }
 
@@ -196,11 +204,6 @@ void Server::handleNick(int client_fd, const std::vector<std::string> &tokens)
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
-    if (clientsFds[client_fd]->getNickOk()) {
-        std::string msg = "You are already registered\n";
-        send(client_fd, msg.c_str(), msg.length(), 0);
-        return;
-    }
     if (clientsFds[client_fd]->getPassOk() == false)
     {
         std::string msg = "You are not registered\n";
@@ -212,16 +215,19 @@ void Server::handleNick(int client_fd, const std::vector<std::string> &tokens)
         send(client_fd, "This nickname is allready use\n", 30, 0);
         return;
     }
-    clientsName[tokens[1]] = clientsFds[client_fd];
-    clientsFds[client_fd]->setNickOk(true);
+    if(clientsFds[client_fd]->getNickOk()) // can i if i want notify channels
+        clientsName.erase(clientsFds[client_fd]->getNick());
+    else
+        clientsFds[client_fd]->setNickOk(true);
     clientsFds[client_fd]->setNick(tokens[1]);
+    clientsName[tokens[1]] = clientsFds[client_fd];
 }
 
 void Server::handleUser(int client_fd, const std::vector<std::string> &tokens)
 {
     if (tokens.size() != 5)
     {
-        std::string msg = "Usage: USER <username> <hostname> <servername>: <realname>\n";
+        std::string msg = "Usage: USER <username> <hostname> <servername> :<realname>\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
@@ -240,8 +246,8 @@ void Server::handleUser(int client_fd, const std::vector<std::string> &tokens)
     clientsFds[client_fd]->setUsername(tokens[1]);
     clientsFds[client_fd]->setRealname(tokens[4]);
     clientsFds[client_fd]->setUserOk(true); // we dont need to check this USEROK mean the setregistred is ok :>
-        clientsFds[client_fd]->setRegistered(true);
-        std::string msg = "Welcome " + clientsFds[client_fd]->getNick() + "!\n";
+    clientsFds[client_fd]->setRegistered(true);
+    std::string msg = "Welcome " + clientsFds[client_fd]->getNick() + "!\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
 }
 
@@ -253,10 +259,7 @@ void Server::handlePing(int client_fd, const std::vector<std::string> &tokens)
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
-    std::string param = tokens[1];
-    if (param[0] == ':')
-        param = param.substr(1);
-    std::string msg = ":ircserv PONG ircserv :" + param + "\r\n";
+    std::string msg = "ircserv : PONG " + tokens[1] + "\r\n";
     send(client_fd, msg.c_str(), msg.length(), 0);
 }
 
@@ -270,6 +273,7 @@ void Server::handleQuit(int client_fd, const std::string &command)
 
     // TODO: later when channels are implemented,
     // notify all channel members about the quit
+
     removeClient(client_fd);
 }
 

@@ -6,7 +6,7 @@
 /*   By: mfahmi <mfahmi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/12 09:23:18 by mowardan          #+#    #+#             */
-/*   Updated: 2026/03/08 21:02:53 by mfahmi           ###   ########.fr       */
+/*   Updated: 2026/03/09 07:02:16 by mfahmi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,8 +26,8 @@ void client::appendToBuffer(const std::string &data)
 {
     buffer += data;
     // std::cout << *(buffer.end() -1);
-    if(*(buffer.end() -1) == '\n')
-    std::cout << "client number : " << client_fd << " the msg is:" << buffer;
+    // if(*(buffer.end() -1) == '\n')
+    // std::cout << "client number : " << client_fd << " the msg is:" << buffer;
 }
 
 std::string client::extractCommand()
