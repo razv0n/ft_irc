@@ -6,7 +6,7 @@
 /*   By: mfahmi <mfahmi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/12 09:23:10 by mowardan          #+#    #+#             */
-/*   Updated: 2026/03/09 08:22:36 by mfahmi           ###   ########.fr       */
+/*   Updated: 2026/03/09 19:22:38 by mfahmi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -169,7 +169,7 @@ void Server::handleCommand(int client_fd, const std::string &command)
 
 // TODO split the cmd to the folders and structure the data 
 // TODO handle the user in the right way (ask some info)  check the ping pong and why it is exist
-// TODO how join start with it and why that is 
+// TODO how join start with it and why that is  
 // TODO start on the join and room cmd
 // TODO add some debug on the server 7l9 3lih
 void Server::handlePass(int client_fd, const std::vector<std::string> &tokens)
