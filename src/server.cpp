@@ -37,8 +37,8 @@ void Server::run()
     server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     server_addr.sin_port = htons(port);
     int opt = 1;
-     setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-    if(bind(server_fd, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr)) == -1) 
+    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    if (bind(server_fd, reinterpret_cast<sockaddr *>(&server_addr), sizeof(server_addr)) == -1)
     {
         throw std::runtime_error("bind failed");
     }
@@ -61,7 +61,7 @@ void Server::run()
         }
         for (size_t i = 0; i < poll_fds.size(); ++i)
         {
-            if (poll_fds[i].revents && POLLIN)
+            if (poll_fds[i].revents & POLLIN)
             {
                 if (poll_fds[i].fd == server_fd)
                 {
@@ -79,8 +79,8 @@ void Server::run()
                     client_pollfd.revents = 0;
                     poll_fds.push_back(client_pollfd);
                     clientsFds[client_fd] = new client(client_fd);
-                } 
-                else 
+                }
+                else
                 {
                     int client_fd = poll_fds[i].fd;
                     char buffer[1024];
@@ -97,7 +97,7 @@ void Server::run()
                     {
                         std::string data(buffer, bytes_received);
                         clientsFds[client_fd]->appendToBuffer(data);
-                        
+
                         std::string cmd;
                         while ((cmd = clientsFds[client_fd]->extractCommand()) != "")
                         {
@@ -127,7 +127,18 @@ std::vector<std::string> Server::splitCommand(const std::string &cmd)
     std::istringstream iss(cmd);
     std::string token;
     while (iss >> token)
+    {
+        if (token[0] == ':')
+        {
+            std::string remove = token.substr(1);
+            std::string rest;
+            if (std::getline(iss, rest))
+                remove += rest;
+            tokens.push_back(remove);
+            break;
+        }
         tokens.push_back(token);
+    }
     return tokens;
 }
 
@@ -187,7 +198,8 @@ void Server::handleNick(int client_fd, const std::vector<std::string> &tokens)
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
-    if (clientsFds[client_fd]->getNickOk()) {
+    if (clientsFds[client_fd]->getNickOk())
+    {
         std::string msg = "You are already registered\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
@@ -198,9 +210,9 @@ void Server::handleNick(int client_fd, const std::vector<std::string> &tokens)
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
-    if(clientsName.count(tokens[1]))
+    if (clientsName.count(tokens[1]))
     {
-        send(client_fd, "This nickname is allready use\n", 30, 0);
+        send(client_fd, "This nickname is already use\n", 30, 0);
         return;
     }
     clientsName[tokens[1]] = clientsFds[client_fd];
@@ -210,10 +222,15 @@ void Server::handleNick(int client_fd, const std::vector<std::string> &tokens)
 
 void Server::handleUser(int client_fd, const std::vector<std::string> &tokens)
 {
+    std::cout << "[DEBUG] handleUser called, fd=" << client_fd << ", tokens.size()=" << tokens.size() << std::endl;
+    for (size_t i = 0; i < tokens.size(); ++i)
+        std::cout << "  [" << i << "]=" << tokens[i] << std::endl;
+
     if (tokens.size() != 5)
     {
         std::string msg = "Usage: USER <username> <hostname> <servername> <realname>\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
+        std::cout << "[DEBUG] USER rejected: wrong number of parameters" << std::endl;
         return;
     }
     if (clientsFds[client_fd]->getUserOk())
@@ -270,10 +287,11 @@ void Server::handleQuit(int client_fd, const std::string &command)
 
 void Server::removeClient(int client_fd)
 {
-    std::cout << "Client " << clientsFds[client_fd]->getNick() << " disconnected: " << std::endl;
+    std::string nick = clientsFds[client_fd]->getNick();
+    std::cout << "Client " << nick << " disconnected (fd=" << client_fd << ")" << std::endl;
     delete clientsFds[client_fd];
     clientsFds.erase(client_fd);
-    clientsName.erase(clientsFds[client_fd]->getNick());
+    clientsName.erase(nick);
     for (size_t i = 0; i < poll_fds.size(); ++i)
     {
         if (poll_fds[i].fd == client_fd)
