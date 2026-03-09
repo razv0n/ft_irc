@@ -170,6 +170,8 @@ void Server::handleCommand(int client_fd, const std::string &command)
         handleNick(client_fd, tokens);
     else if (cmd == "USER")
         handleUser(client_fd, tokens);
+    else if (cmd == "JOIN")
+        handleJoin(client_fd, tokens);
     else
     {
         std::string msg = "Unknown command : " + cmd + "\n";
@@ -296,6 +298,42 @@ void Server::handleQuit(int client_fd, const std::string &command)
     // notify all channel members about the quit
 
     removeClient(client_fd);
+}
+
+void Server::handleJoin(int client_fd, const std::vector<std::string> &tokens)
+{
+    if (tokens.size() < 2)
+    {
+        std::string msg = "Usage: JOIN <channel> [key]\r\n";
+        send(client_fd, msg.c_str(), msg.length(), 0);
+        return;
+    }
+    std::string channel_name = tokens[1];
+    if (channel_name[0] != '#')
+    {
+        std::string msg = "Invalid channel name\r\n";
+        send(client_fd, msg.c_str(), msg.length(), 0);
+        return;
+    }
+    std::string key = "";
+    if (tokens.size() > 2) {
+        key = tokens[2]; 
+    }
+    if (channels.find(channel_name) == channels.end())
+    {
+        channels[channel_name] = new Channel(channel_name, clientsFds[client_fd]);
+        channels[channel_name]->setKey(key);
+    }
+    else
+    {
+        if (channels[channel_name]->isKeySet() && channels[channel_name]->getKey() != key)
+        {
+            std::string msg = "Invalid key\r\n";
+            send(client_fd, msg.c_str(), msg.length(), 0);
+            return;
+        }
+        channels[channel_name]->addClient(clientsFds[client_fd]);
+    }
 }
 
 void Server::removeClient(int client_fd)
