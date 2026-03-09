@@ -147,11 +147,7 @@ std::vector<std::string> Server::splitCommand(const std::string &cmd)
             break;
         }
         tokens.push_back(token);
-<<<<<<< HEAD
     }
-=======
-    tokens.push_back(last_token);
->>>>>>> e1d27b2bb160fc632fefa376f739c340b8ff533d
     return tokens;
 }
 
