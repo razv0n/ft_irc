@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mowardan <mowardan@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mfahmi <mfahmi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/12 09:23:10 by mowardan          #+#    #+#             */
-/*   Updated: 2026/03/02 13:58:06 by helfatih         ###   ########.fr       */
+/*   Updated: 2026/03/08 08:56:18 by mfahmi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,8 +37,8 @@ void Server::run()
     server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     server_addr.sin_port = htons(port);
     int opt = 1;
-    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-    if (bind(server_fd, reinterpret_cast<sockaddr *>(&server_addr), sizeof(server_addr)) == -1)
+     setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    if(bind(server_fd, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr)) == -1) 
     {
         throw std::runtime_error("bind failed");
     }
@@ -47,7 +47,8 @@ void Server::run()
         throw std::runtime_error("listen failed");
     }
 
-    // Allow reuse of address/port (prevents "Address already in use" error)
+    // int opt = 1;
+    // setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
     struct pollfd server_pollfd;
     server_pollfd.fd = server_fd;
     server_pollfd.events = POLLIN;
@@ -79,32 +80,31 @@ void Server::run()
                     client_pollfd.events = POLLIN;
                     client_pollfd.revents = 0;
                     poll_fds.push_back(client_pollfd);
-                    clients[client_fd] = new client(client_fd);
-                }
-                else
+                    clientsFds[client_fd] = new client(client_fd);
+                } 
+                else 
                 {
-                    // TODO each client should has a buffer to keep track it;
                     int client_fd = poll_fds[i].fd;
                     char buffer[1024];
                     ssize_t bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
                     if (bytes_received <= 0)
                     {
-                        // close(client_fd); ana bazghoro hadi khasha t7ayed hit kandeletew client o kaytclosa fd f destructer
-                        delete clients[client_fd];
-                        clients.erase(client_fd);
+                        close(client_fd);
+                        delete clientsFds[client_fd];
+                        clientsFds.erase(client_fd);
                         poll_fds.erase(poll_fds.begin() + i);
                         --i;
                     }
                     else
                     {
                         std::string data(buffer, bytes_received);
-                        clients[client_fd]->appendToBuffer(data);
-
+                        clientsFds[client_fd]->appendToBuffer(data);
+                        
                         std::string cmd;
-                        while ((cmd = clients[client_fd]->extractCommand()) != "")
+                        while ((cmd = clientsFds[client_fd]->extractCommand()) != "")
                         {
                             handleCommand(client_fd, cmd);
-                            if (clients.find(client_fd) == clients.end())
+                            if (clientsFds.find(client_fd) == clientsFds.end())
                                 break;
                         }
                     }
@@ -116,9 +116,9 @@ void Server::run()
 
 Server::~Server()
 {
-    for (std::map<int, client *>::iterator it = clients.begin(); it != clients.end(); ++it)
+    for (std::map<int, client *>::iterator it = clientsFds.begin(); it != clientsFds.end(); ++it)
         delete it->second;
-    clients.clear();
+    clientsFds.clear();
     if (server_fd != -1)
         close(server_fd);
 }
@@ -166,7 +166,7 @@ void Server::handlePass(int client_fd, const std::vector<std::string> &tokens)
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
-    if (clients[client_fd]->getPassOk())
+    if (clientsFds[client_fd]->getPassOk())
     {
         std::string msg = "You are already registered\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
@@ -178,7 +178,7 @@ void Server::handlePass(int client_fd, const std::vector<std::string> &tokens)
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
-    clients[client_fd]->setPassOk(true);
+    clientsFds[client_fd]->setPassOk(true);
 }
 
 void Server::handleNick(int client_fd, const std::vector<std::string> &tokens)
@@ -189,20 +189,25 @@ void Server::handleNick(int client_fd, const std::vector<std::string> &tokens)
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
-    if (clients[client_fd]->getNickOk())
-    {
+    if (clientsFds[client_fd]->getNickOk()) {
         std::string msg = "You are already registered\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
-    if (clients[client_fd]->getPassOk() == false)
+    if (clientsFds[client_fd]->getPassOk() == false)
     {
         std::string msg = "You are not registered\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
-    clients[client_fd]->setNick(tokens[1]);
-    clients[client_fd]->setNickOk(true);
+    if(clientsName.count(tokens[1]))
+    {
+        send(client_fd, "This nickname is allready use\n", 30, 0);
+        return;
+    }
+    clientsName[tokens[1]] = clientsFds[client_fd];
+    clientsFds[client_fd]->setNickOk(true);
+    clientsFds[client_fd]->setNick(tokens[1]);
 }
 
 void Server::handleUser(int client_fd, const std::vector<std::string> &tokens)
@@ -213,25 +218,25 @@ void Server::handleUser(int client_fd, const std::vector<std::string> &tokens)
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
-    if (clients[client_fd]->getUserOk())
+    if (clientsFds[client_fd]->getUserOk())
     {
         std::string msg = "You are already registered\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
-    if (clients[client_fd]->getNickOk() == false)
+    if (clientsFds[client_fd]->getNickOk() == false)
     {
         std::string msg = "You are not registered\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
-    clients[client_fd]->setUsername(tokens[1]);
-    clients[client_fd]->setRealname(tokens[4]);
-    clients[client_fd]->setUserOk(true);
-    if (clients[client_fd]->getPassOk() && clients[client_fd]->getNickOk() && clients[client_fd]->getUserOk())
+    clientsFds[client_fd]->setUsername(tokens[1]);
+    clientsFds[client_fd]->setRealname(tokens[4]);
+    clientsFds[client_fd]->setUserOk(true);
+    if (clientsFds[client_fd]->getPassOk() && clientsFds[client_fd]->getNickOk() && clientsFds[client_fd]->getUserOk())
     {
-        clients[client_fd]->setRegistered(true);
-        std::string msg = "Welcome " + clients[client_fd]->getNick() + "!\n";
+        clientsFds[client_fd]->setRegistered(true);
+        std::string msg = "Welcome " + clientsFds[client_fd]->getNick() + "!\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
     }
 }
@@ -266,9 +271,10 @@ void Server::handleQuit(int client_fd, const std::string &command)
 
 void Server::removeClient(int client_fd)
 {
-    std::cout << "Client " << clients[client_fd]->getNick() << " disconnected: " << std::endl;
-    delete clients[client_fd];
-    clients.erase(client_fd);
+    std::cout << "Client " << clientsFds[client_fd]->getNick() << " disconnected: " << std::endl;
+    delete clientsFds[client_fd];
+    clientsFds.erase(client_fd);
+    clientsName.erase(clientsFds[client_fd]->getNick());
     for (size_t i = 0; i < poll_fds.size(); ++i)
     {
         if (poll_fds[i].fd == client_fd)
