@@ -302,6 +302,12 @@ void Server::handleQuit(int client_fd, const std::string &command)
 
 void Server::handleJoin(int client_fd, const std::vector<std::string> &tokens)
 {
+    if (clientsFds[client_fd]->isRegistered() == false)
+    {
+        std::string msg = "You are not registered\r\n";
+        send(client_fd, msg.c_str(), msg.length(), 0);
+        return;
+    }
     if (tokens.size() < 2)
     {
         std::string msg = "Usage: JOIN <channel> [key]\r\n";
@@ -334,6 +340,8 @@ void Server::handleJoin(int client_fd, const std::vector<std::string> &tokens)
         }
         channels[channel_name]->addClient(clientsFds[client_fd]);
     }
+    std::string msg = "Welcome " + clientsFds[client_fd]->getNick() + "!\r\n";
+    send(client_fd, msg.c_str(), msg.length(), 0);
 }
 
 void Server::removeClient(int client_fd)
