@@ -6,7 +6,7 @@
 /*   By: mfahmi <mfahmi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/12 09:23:10 by mowardan          #+#    #+#             */
-/*   Updated: 2026/03/08 08:56:18 by mfahmi           ###   ########.fr       */
+/*   Updated: 2026/03/09 08:22:36 by mfahmi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,7 +124,16 @@ Server::~Server()
 std::vector<std::string> Server::splitCommand(const std::string &cmd)
 {
     std::vector<std::string> tokens;
-    std::istringstream iss(cmd);
+    std::string last_token = "";
+    std::string cmd_token = cmd;
+    size_t find = cmd.find(":");
+
+    if(find != std::string::npos)
+    {
+        last_token = cmd.substr(find + 1);
+        cmd_token = cmd.substr(0, find);
+    }
+    std::istringstream iss(cmd_token);
     std::string token;
     while (iss >> token)
     {
@@ -138,7 +147,11 @@ std::vector<std::string> Server::splitCommand(const std::string &cmd)
             break;
         }
         tokens.push_back(token);
+<<<<<<< HEAD
     }
+=======
+    tokens.push_back(last_token);
+>>>>>>> e1d27b2bb160fc632fefa376f739c340b8ff533d
     return tokens;
 }
 
@@ -152,8 +165,9 @@ void Server::handleCommand(int client_fd, const std::string &command)
 
     if (cmd == "PING")
         handlePing(client_fd, tokens);
-    else if (cmd == "QUIT")
+    else if (cmd == "QUIT") {
         handleQuit(client_fd, command);
+    }
     else if (cmd == "PASS")
         handlePass(client_fd, tokens);
     else if (cmd == "NICK")
@@ -167,6 +181,11 @@ void Server::handleCommand(int client_fd, const std::string &command)
     }
 }
 
+// TODO split the cmd to the folders and structure the data 
+// TODO handle the user in the right way (ask some info)  check the ping pong and why it is exist
+// TODO how join start with it and why that is 
+// TODO start on the join and room cmd
+// TODO add some debug on the server 7l9 3lih
 void Server::handlePass(int client_fd, const std::vector<std::string> &tokens)
 {
     if (tokens.size() != 2)
@@ -188,6 +207,7 @@ void Server::handlePass(int client_fd, const std::vector<std::string> &tokens)
         return;
     }
     clientsFds[client_fd]->setPassOk(true);
+    send(client_fd,"the Password is correct\n",20,0);
 }
 
 void Server::handleNick(int client_fd, const std::vector<std::string> &tokens)
@@ -215,9 +235,12 @@ void Server::handleNick(int client_fd, const std::vector<std::string> &tokens)
         send(client_fd, "This nickname is already use\n", 30, 0);
         return;
     }
-    clientsName[tokens[1]] = clientsFds[client_fd];
-    clientsFds[client_fd]->setNickOk(true);
+    if(clientsFds[client_fd]->getNickOk()) // can i if i want notify channels
+        clientsName.erase(clientsFds[client_fd]->getNick());
+    else
+        clientsFds[client_fd]->setNickOk(true);
     clientsFds[client_fd]->setNick(tokens[1]);
+    clientsName[tokens[1]] = clientsFds[client_fd];
 }
 
 void Server::handleUser(int client_fd, const std::vector<std::string> &tokens)
@@ -228,7 +251,7 @@ void Server::handleUser(int client_fd, const std::vector<std::string> &tokens)
 
     if (tokens.size() != 5)
     {
-        std::string msg = "Usage: USER <username> <hostname> <servername> <realname>\n";
+        std::string msg = "Usage: USER <username> <hostname> <servername> :<realname>\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         std::cout << "[DEBUG] USER rejected: wrong number of parameters" << std::endl;
         return;
@@ -247,13 +270,10 @@ void Server::handleUser(int client_fd, const std::vector<std::string> &tokens)
     }
     clientsFds[client_fd]->setUsername(tokens[1]);
     clientsFds[client_fd]->setRealname(tokens[4]);
-    clientsFds[client_fd]->setUserOk(true);
-    if (clientsFds[client_fd]->getPassOk() && clientsFds[client_fd]->getNickOk() && clientsFds[client_fd]->getUserOk())
-    {
-        clientsFds[client_fd]->setRegistered(true);
-        std::string msg = "Welcome " + clientsFds[client_fd]->getNick() + "!\n";
+    clientsFds[client_fd]->setUserOk(true); // we dont need to check this USEROK mean the setregistred is ok :>
+    clientsFds[client_fd]->setRegistered(true);
+    std::string msg = "Welcome " + clientsFds[client_fd]->getNick() + "!\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
-    }
 }
 
 void Server::handlePing(int client_fd, const std::vector<std::string> &tokens)
@@ -264,10 +284,7 @@ void Server::handlePing(int client_fd, const std::vector<std::string> &tokens)
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
-    std::string param = tokens[1];
-    if (param[0] == ':')
-        param = param.substr(1);
-    std::string msg = ":ircserv PONG ircserv :" + param + "\r\n";
+    std::string msg = "ircserv : PONG " + tokens[1] + "\r\n";
     send(client_fd, msg.c_str(), msg.length(), 0);
 }
 

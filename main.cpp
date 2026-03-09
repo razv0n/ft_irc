@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mowardan <mowardan@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mfahmi <mfahmi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/12 09:23:27 by mowardan          #+#    #+#             */
-/*   Updated: 2026/03/02 13:58:07 by helfatih         ###   ########.fr       */
+/*   Updated: 2026/03/08 10:23:04 by mfahmi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ int main(int ac, char **av)
         std::cerr << "Port must be between 1024 and 65535" << std::endl;
         return 1;
     }
-    if (password.empty())
+    else if (password.empty())
     {
         std::cerr << "Password cannot be empty" << std::endl;
         return 1;
