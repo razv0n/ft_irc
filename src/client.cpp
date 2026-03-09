@@ -23,9 +23,8 @@ client::~client() {
 
 void client::appendToBuffer(const std::string &data) {
     buffer += data;
-    // std::cout << *(buffer.end() -1);
-    if(*(buffer.end() -1) == '\n')
-        std::cout << "client number : " << client_fd << " the msg is:" << buffer;
+    if(*(buffer.end() - 1) == '\n')
+        std::cout << "client number : " << client_fd << " the msg is : " << buffer;
 }
 
 std::string client::extractCommand() {
