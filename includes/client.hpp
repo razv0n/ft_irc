@@ -15,6 +15,7 @@ class client
 		bool pass_ok;
 		bool nick_ok;
 		bool user_ok;
+		std::map<std::string, channel*> joined_channels;
 	public:
 		client(int fd);
 		~client();

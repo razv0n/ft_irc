@@ -4,6 +4,7 @@
 #include <poll.h>
 #include <string>
 #include <cstring>
+#include <set>
 #include <cstdlib>
 #include <iostream>
 #include <unistd.h>
