@@ -1,4 +1,4 @@
-#include "../include/Channel.hpp"
+#include "../includes/Channel.hpp"
 
 Channel::Channel(const std::string& name, client* creator)
 {
@@ -14,14 +14,6 @@ Channel::Channel(const std::string& name, client* creator)
     this->limit = 0;
     this->is_key_set = false;
     this->key = "";
-    this->is_anonymous = false;
-}
-
-Channel::~Channel()
-{
-    this->clients.clear();
-    this->operators.clear();
-    this->invites.clear();
 }
 
 void Channel::addClient(client* client)

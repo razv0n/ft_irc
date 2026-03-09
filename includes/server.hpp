@@ -7,6 +7,7 @@
 #include "Channel.hpp"
 
 class client;
+class Channel;
 
 class Server
 {
