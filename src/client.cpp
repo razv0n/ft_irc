@@ -6,7 +6,7 @@
 /*   By: mfahmi <mfahmi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/12 09:23:18 by mowardan          #+#    #+#             */
-/*   Updated: 2026/03/09 07:02:16 by mfahmi           ###   ########.fr       */
+/*   Updated: 2026/03/10 06:51:56 by mfahmi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,6 +78,10 @@ void client::setUserOk(bool status)
 bool client::isRegistered() const
 {
     return is_registered;
+}
+int client::getFd() const
+{
+    return client_fd;
 }
 
 void client::setRegistered(bool status)

@@ -15,7 +15,7 @@ class client
 		bool pass_ok;
 		bool nick_ok;
 		bool user_ok;
-		std::map<std::string, channel*> joined_channels;
+		// std::map<std::string, Channel*> joined_channels;
 	public:
 		client(int fd);
 		~client();
@@ -28,6 +28,7 @@ class client
 		void setPassOk(bool status);
 		bool getNickOk() const;
 		void setNickOk(bool status);
+		int getFd() const;
 		bool getUserOk() const;
 		void setUserOk(bool status);
 		bool isRegistered() const;

@@ -8,7 +8,9 @@ INC_DIR = includes
 
 SRC = main.cpp\
       $(SRC_DIR)/server.cpp \
-      $(SRC_DIR)/client.cpp
+      $(SRC_DIR)/client.cpp \
+      $(SRC_DIR)/Channel.cpp
+	  
 
 OBJ = $(SRC:.cpp=.o)
 

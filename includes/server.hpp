@@ -4,8 +4,10 @@
 #include "ft_irc.hpp"
 #include <vector>
 #include <map>
-#include "channel.hpp"
+#include "Channel.hpp"
+
 class client;
+class Channel;
 
 class Server
 {
@@ -16,7 +18,7 @@ class Server
 		std::vector<struct pollfd> poll_fds;
 		std::map<int, client*> clientsFds;
 		std::map<std::string, client*> clientsName;
-		std::map<std::string, channel*> channels;
+		std::map<std::string, Channel*> channels;
 	public:
 		Server(int port, const std::string& password);
 		~Server();
@@ -29,6 +31,9 @@ class Server
 	void handleUser(int client_fd, const std::vector<std::string> &tokens);
 	void handlePing(int client_fd, const std::vector<std::string> &tokens);
 	void handleQuit(int client_fd, const std::string &command);
+	void handleJoin(int client_fd, const std::vector<std::string> &tokens);
+	void handlePrivmsg(int client_fd, const std::vector<std::string> &tokens);
+
 	void removeClient(int client_fd);
 	std::vector<std::string> splitCommand(const std::string &cmd);
 };
