@@ -141,9 +141,8 @@ void Server::handleCommand(int client_fd, const std::string &command)
 
     if (cmd == "PING")
         handlePing(client_fd, tokens);
-    else if (cmd == "QUIT") {
+    else if (cmd == "QUIT")
         handleQuit(client_fd, command);
-    }
     else if (cmd == "PASS")
         handlePass(client_fd, tokens);
     else if (cmd == "NICK")
@@ -166,16 +165,26 @@ void Server::handleCommand(int client_fd, const std::string &command)
         handleMode(client_fd, tokens);
     else
     {
-        std::string msg = "Unknown command : " + cmd + "\n";
+        std::string msg = "Unknown command : " + cmd + "\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
     }
 }
 
 // TODO split the cmd to the folders and structure the data 
 // TODO handle the user in the right way (ask some info)  check the ping pong and why it is exist
-// TODO how join start with it and why that is  
-// TODO start on the join and room cmd
 // TODO add some debug on the server 7l9 3lih
+//TODO every msg should be end with \r\n
+// TODO test the code in irssi client
+//TODO split the cmd functions
+// TODO check the overflow of the long nm
+int isValidNm(std::string strNm)
+{
+    char *end;
+    long nm = strtol(strNm.c_str(), &end, 10);
+    if(*end != '\0' || nm <= 0 || nm > INT_MAX || nm < INT_MIN)
+        return 0;
+    return nm;
+}
 void Server::handleMode(int client_fd, const std::vector<std::string> &tokens)
 {
     if(!clientsFds[client_fd]->isRegistered())
@@ -210,7 +219,7 @@ void Server::handleMode(int client_fd, const std::vector<std::string> &tokens)
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
-    if(mode.size() != 2 || mode[0] != '-' || mode[0] != '+')
+    if(mode.size() != 3 || mode[0] != '-' || mode[0] != '+')
     {
         std::string msg = "the mode is incorrect\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
@@ -220,48 +229,65 @@ void Server::handleMode(int client_fd, const std::vector<std::string> &tokens)
     {
     case 'i':
         channels[channel_name]->setInviteOnly(mode[0] == '-' ? false: true);
-        break;
+        return;
     case 't':
         channels[channel_name]->setTopicProtected(mode[0] == '-' ? false: true);
-        break;
+        return;
     case 'k':
         if(tokens.size() == 4 && mode[0] == '+')
         {
             std::string new_key = tokens[3];
             channels[channel_name]->setKey(new_key);
             channels[channel_name]->setKeySet(true);
+            return;
         }
         else if(tokens.size() == 3 && mode[0] == '-')
         {
             channels[channel_name]->setKey("");
             channels[channel_name]->setKeySet(false);
+            return;
         }
         break;
     case 'o':
-        if(tokens.size() == 4 && channels[channel_name]->isMember(clientsName[tokens[3]]))
+        if(!channels[channel_name]->isMember(clientsName[tokens[3]]))
+        {
+            std::string msg = "the " + tokens[3] + " is not a member inside this channel \r\n";
+            send(client_fd, msg.c_str(), msg.length(), 0);
+            return;
+        }
+        if(tokens.size() == 4)
         {
             if(mode[0] == '-')
                 channels[channel_name]->removeOperator(clientsName[tokens[3]]);
             else
                 channels[channel_name]->addOperator(clientsName[tokens[3]]);
+            return;
         }
         break;
-    // case 'l':
-    //     if(tokens.size() == 4 && mode[0] == '+')
-    //     {
-    //         std::string new_limit = tokens[3];
-    //         if(std::isdigit(new_limit))
-    //         {
-    //             channels[channel_name]->setLimit(new_limit.);
-    //             channels[channel_name]->setLimitSet(true);
-    //         }
-    //     }
-    //     else if(tokens.size() == 3 && mode[0] == '-')
-    //     {
-    //         channels[channel_name]->setKey("");
-    //         channels[channel_name]->setKeySet(false);
-    //     }
-    //     break;
+    case 'l':
+        if(tokens.size() == 4 && mode[0] == '+')
+        {
+            std::string new_limit = tokens[3];
+            if(int limit = isValidNm(new_limit))
+            {
+                channels[channel_name]->setLimit(limit); 
+                channels[channel_name]->setLimitSet(true);
+                return;
+            }
+            else
+            {
+                std::string msg = "the number is incorrect\r\n";
+                send(client_fd, msg.c_str(), msg.length(), 0);
+                return;         
+            }
+        }
+        else if(tokens.size() == 3 && mode[0] == '-')
+        {
+            channels[channel_name]->setLimit(0);
+            channels[channel_name]->setLimitSet(false);
+            return;
+        }
+        break;
     }
     std::string msg = "the mode is incorrect\r\n";
     send(client_fd, msg.c_str(), msg.length(), 0);
@@ -276,16 +302,16 @@ void Server::handleTopic(int client_fd, const std::vector<std::string> &tokens)
         return;
     }
     size_t tokensSize = tokens.size();
-    if(tokensSize > 3 || tokensSize < 3)
+    if(tokensSize > 2 || tokensSize < 3)
     {
-        std::string msg = "Usage: TOPIC <#channel>\n";
+        std::string msg = "Usage: TOPIC <#channel>\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
     std::string channel_name = tokens[1];
     if(!channels[channel_name]->isMember(clientsFds[client_fd]))
     {
-        std::string msg = "you are not a member inside this channel\n";
+        std::string msg = "you are not a member inside this channel\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
@@ -298,13 +324,13 @@ void Server::handleTopic(int client_fd, const std::vector<std::string> &tokens)
     if(tokensSize == 2)
     {
         std::string topic = channels[channel_name]->isTopicSet() ?  channels[channel_name]->getTopic(): "No topic is set";
-        std::string msg = "ircserv " + clientsFds[client_fd]->getNick() + " " + channel_name + " :" + topic + "\n";
+        std::string msg = "ircserv " + clientsFds[client_fd]->getNick() + " " + channel_name + " :" + topic + "\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
     else if (channels[channel_name]->isTopicProtected() && !channels[channel_name]->getOperators().count(clientsFds[client_fd]))
     {
-        std::string msg = "ircserv " + clientsFds[client_fd]->getNick() + " you are not an operator inside " + channel_name + "\n";
+        std::string msg = "ircserv " + clientsFds[client_fd]->getNick() + " you are not an operator inside " + channel_name + "\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
@@ -315,13 +341,13 @@ void Server::handleInvite(int client_fd, const std::vector<std::string> &tokens)
 {
     if(!clientsFds[client_fd]->isRegistered())
     {
-        std::string msg = "You are not registered\n";
+        std::string msg = "You are not registered\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
     if(tokens.size() > 4 || tokens.size() < 3)
     {
-        send(client_fd, "Usage: INVITE <nick> <#channel>\n", 30, 0);
+        send(client_fd, "Usage: INVITE <nick> <#channel>\r\n", 30, 0);
         return;
     }
     std::string channel_name = tokens[2];
@@ -335,29 +361,29 @@ void Server::handleInvite(int client_fd, const std::vector<std::string> &tokens)
     }
     if(!channels.count(channel_name))
     {
-        std::string msg = "the channel not found\n";
+        std::string msg = "the channel not found\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
     if(!channels[channel_name]->isMember(clientsFds[client_fd]))
     {
-        std::string msg = "you are not a member inside this channel\n";
+        std::string msg = "you are not a member inside this channel\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
     if(!channels[channel_name]->isOperator(clientsFds[client_fd]))
     {
-        std::string msg = "you are not an operator inside this channel\n";
+        std::string msg = "you are not an operator inside this channel\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
     if(!channels[channel_name]->isMember(clientsName[invite_name]))
     {
-        std::string msg = "the " + invite_name +"is not a member inside this channel\n";
+        std::string msg = "the " + invite_name +"is not a member inside this channel\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
-    std::string msg = ":" + clientsFds[client_fd]->getNick() + " INVITE " + invite_name + " " + channel_name;
+    std::string msg = ":" + clientsFds[client_fd]->getNick() + " INVITE " + invite_name + " " + channel_name + "\r\n";
     send(clientsName[invite_name]->getFd(), msg.c_str(), msg.length(), 0);
     channels[channel_name]->addInvite(clientsFds[client_fd]);
 }
@@ -365,13 +391,13 @@ void Server::handleKick(int client_fd, const std::vector<std::string> &tokens)
 {
     if(!clientsFds[client_fd]->isRegistered())
     {
-        std::string msg = "You are not registered\n";
+        std::string msg = "You are not registered\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
     if(tokens.size() > 4 || tokens.size() < 3)
     {
-        send(client_fd, "Usage: KICK <channel> <nick> :<msg>\n", 30, 0);
+        send(client_fd, "Usage: KICK <channel> <nick> :<msg>\r\n", 30, 0);
         return;
     }
     std::string channel_name = tokens[1];
@@ -383,32 +409,32 @@ void Server::handleKick(int client_fd, const std::vector<std::string> &tokens)
     }
     if(!channels.count(channel_name))
     {
-        std::string msg = "the channel not found\n";
+        std::string msg = "the channel not found\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
     if(!channels[channel_name]->isMember(clientsFds[client_fd]))
     {
-        std::string msg = "you are not a member inside this channel\n";
+        std::string msg = "you are not a member inside this channel\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
     if(!channels[channel_name]->isOperator(clientsFds[client_fd]))
     {
-        std::string msg = "you are not an operator inside this channel\n";
+        std::string msg = "you are not an operator inside this channel\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
     std::string kick_name = tokens[2];
     if(!channels[channel_name]->isMember(clientsName[tokens[2]]))
     {
-        std::string msg = "the " + tokens[2] +"is not a member inside this channel\n";
+        std::string msg = "the " + tokens[2] +"is not a member inside this channel\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
     if(tokens[2] == clientsFds[client_fd]->getNick())
     {
-        std::string msg = "really nega :>\n";
+        std::string msg = "really nega :>\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
@@ -420,20 +446,20 @@ void Server::handleKick(int client_fd, const std::vector<std::string> &tokens)
     std::string msg = "";
     if(tokens.size() == 4)
         msg = tokens[3];
-    msg = ":" + clientsFds[client_fd]->getNick() + "!"+ clientsFds[client_fd]->getUsername() + " KICK "+ channel_name + kick_name + " :" + msg;
+    msg = ":" + clientsFds[client_fd]->getNick() + "!"+ clientsFds[client_fd]->getUsername() + " KICK "+ channel_name + kick_name + " :" + msg +"\r\n";
     channels[channel_name]->brodcastMsg(msg, NULL);
 }
 void Server::handlePart(int client_fd, const std::vector<std::string> &tokens)
 {
     if(!clientsFds[client_fd]->isRegistered())
    {
-       std::string msg = "You are not registered\n";
+       std::string msg = "You are not registered\r\n";
        send(client_fd, msg.c_str(), msg.length(), 0);
        return;
    }
     if(tokens.size() > 2 || tokens.size() < 3)
     {
-        send(client_fd, "Usage: PART <channel> :<msg>\n", 30, 0);
+        send(client_fd, "Usage: PART <channel> :<msg>\r\n", 30, 0);
         return;
     }
     std::string channel_name = tokens[1];
@@ -445,13 +471,13 @@ void Server::handlePart(int client_fd, const std::vector<std::string> &tokens)
     }
     if(!channels.count(channel_name))
     {
-        std::string msg = "the channel not found\n";
+        std::string msg = "the channel not found\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
     if(!channels[channel_name]->isMember(clientsFds[client_fd]))
     {
-        std::string msg = "you are not a member inside this channel\n";
+        std::string msg = "you are not a member inside this channel\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
@@ -467,7 +493,7 @@ void Server::handlePart(int client_fd, const std::vector<std::string> &tokens)
     }
     else if(tokens.size() == 3)
     {
-        std::string msg =  ":" + clientsFds[client_fd]->getNick() + "!"+ clientsFds[client_fd]->getUsername() + " PART "+ channel_name + " :" + tokens[2] + "\n";
+        std::string msg =  ":" + clientsFds[client_fd]->getNick() + "!"+ clientsFds[client_fd]->getUsername() + " PART "+ channel_name + " :" + tokens[2] + "\r\n";
         channels[channel_name]->brodcastMsg(msg, clientsFds[client_fd]);
     }
 }
@@ -475,13 +501,13 @@ void Server::handlePrivmsg(int client_fd, const std::vector<std::string> &tokens
 {
     if(!clientsFds[client_fd]->isRegistered())
     {
-        std::string msg = "You are not registered\n";
+        std::string msg = "You are not registered\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
     if(tokens.size() > 3 || tokens.size() < 3)
     {
-        send(client_fd, "Usage: PRIVMSG <target> <text>\n", 32, 0);
+        send(client_fd, "Usage: PRIVMSG <target> <text>\r\n", 32, 0);
         return;
     }
     std::string channel_name = tokens[1];
@@ -493,17 +519,17 @@ void Server::handlePrivmsg(int client_fd, const std::vector<std::string> &tokens
     }
     if(!channels.count(channel_name))
     {
-        std::string msg = "the channel not found\n";
+        std::string msg = "the channel not found\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
     if(!channels[channel_name]->isMember(clientsFds[client_fd]))
     {
-        std::string msg = "you are not a member inside this channel\n";
+        std::string msg = "you are not a member inside this channel\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
-    channels[channel_name]->brodcastMsg(tokens[2], clientsFds[client_fd]);
+    channels[channel_name]->brodcastMsg(clientsFds[client_fd]->getNick() + " : " + tokens[2] + "\r\n", clientsFds[client_fd]);
     
 }
 
@@ -511,43 +537,43 @@ void Server::handlePass(int client_fd, const std::vector<std::string> &tokens)
 {
     if (tokens.size() != 2)
     {
-        std::string msg = "Usage: PASS <password>\n";
+        std::string msg = "Usage: PASS <password>\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
     if (clientsFds[client_fd]->getPassOk())
     {
-        std::string msg = "You are already registered\n";
+        std::string msg = "You are already registered\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
     if (tokens[1] != password)
     {
-        std::string msg = "Password is incorrect\n";
+        std::string msg = "Password is incorrect\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
     clientsFds[client_fd]->setPassOk(true);
-    send(client_fd,"the Password is correct\n",24,0);
+    send(client_fd,"the Password is correct\r\n",25,0);
 }
 
 void Server::handleNick(int client_fd, const std::vector<std::string> &tokens)
 {
     if (tokens.size() != 2)
     {
-        std::string msg = "Usage: NICK <nickname>\n";
+        std::string msg = "Usage: NICK <nickname>\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
     if (clientsFds[client_fd]->getPassOk() == false)
     {
-        std::string msg = "You are not registered\n";
+        std::string msg = "You are not registered\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
     if (clientsName.count(tokens[1]))
     {
-        send(client_fd, "This nickname is already use\n", 30, 0);
+        send(client_fd, "This nickname is already use\r\n", 30, 0);
         return;
     }
     if(clientsFds[client_fd]->getNickOk()) // can i if i want notify channels
@@ -562,20 +588,20 @@ void Server::handleUser(int client_fd, const std::vector<std::string> &tokens)
 {
     if (tokens.size() > 5 || tokens.size() < 5)
     {
-        std::string msg = "Usage: USER <username> <hostname> <servername> :<realname>\n";
+        std::string msg = "Usage: USER <username> <hostname> <servername> :<realname>\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         // std::cout << "[DEBUG] USER rejected: wrong number of parameters" << std::endl;
         return;
     }
     if (clientsFds[client_fd]->getUserOk())
     {
-        std::string msg = "You are already registered\n";
+        std::string msg = "You are already registered\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
     if (clientsFds[client_fd]->getNickOk() == false)
     {
-        std::string msg = "You are not registered\n";
+        std::string msg = "You are not registered\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
@@ -583,7 +609,7 @@ void Server::handleUser(int client_fd, const std::vector<std::string> &tokens)
     clientsFds[client_fd]->setRealname(tokens[4]);
     clientsFds[client_fd]->setUserOk(true); // we dont need to check this USEROK mean the setregistred is ok :>
     clientsFds[client_fd]->setRegistered(true);
-    std::string msg = "Welcome " + clientsFds[client_fd]->getNick() + "!\n";
+    std::string msg = "Welcome " + clientsFds[client_fd]->getNick() + "!\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
 }
 
@@ -654,9 +680,19 @@ void Server::handleJoin(int client_fd, const std::vector<std::string> &tokens)
         }
         else if(channels[channel_name]->isInviteOnly() && !channels[channel_name]->getInvites().count(clientsFds[client_fd]))
         {
-            std::string msg = ":ircserv 473 " + clientsFds[client_fd]->getNick() + " " + channel_name + " :Cannot join channel (+i)\n";
+            std::string msg = ":ircserv " + clientsFds[client_fd]->getNick() + " " + channel_name + " :Cannot join channel (+i)\r\n";
             send(client_fd, msg.c_str(), msg.length(), 0);
             return;
+        }
+        if(channels[channel_name]->isLimitSet())
+        {
+            if(channels[channel_name]->getLimit() == channels[channel_name]->getCurrLimit())
+            {
+                std::string msg = ":ircserv " + clientsFds[client_fd]->getNick() + " " + channel_name + " :Cannot join channel (+l the channel is full)\r\n";
+                send(client_fd, msg.c_str(), msg.length(), 0);
+                return  ;
+            }
+            channels[channel_name]->incLimit();
         }
         channels[channel_name]->addClient(clientsFds[client_fd]);
     }
