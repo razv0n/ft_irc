@@ -12,6 +12,7 @@ Channel::Channel(const std::string& name, client* creator)
     this->is_topic_protected = false;
     this->is_limit_set = false;
     this->limit = 0;
+    this->currentLimit = 0;
     this->is_key_set = false;
     this->key = "";
 }
@@ -21,7 +22,14 @@ void Channel::addClient(client* member)
     if (!members.count(member))
         members.insert(member);
 }
-
+void Channel::incLimit()
+{
+    currentLimit++;
+}
+int Channel::getCurrLimit()
+{
+    return currentLimit;
+}
 void Channel::removeClient(client* member)
 {
     std::set<client *>::iterator it = members.find(member); 

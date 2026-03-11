@@ -21,6 +21,7 @@ private:
     bool is_topic_protected; // MODE +t --> responsible for make topic only operators can set it
     bool is_limit_set; // boolean to see if the channel has a limit
     int limit; // MODE +l --> responsible for make a limit/size for channel
+    int currentLimit;
     bool is_key_set; // boolean to see if the channel has a key
     std::string key; // MODE +k --> responsible for make a key for channel
 public:
@@ -31,9 +32,11 @@ public:
     void removeClient(client* client);
     void addOperator(client* client);
     bool channelEmpty();
+    void incLimit();
     void removeOperator(client* client);
     void addInvite(client* client);
     void removeInvite(client* client);
+    int getCurrLimit();
     void setTopic(const std::string& topic);
     bool isOperator(client* member);
     void setKey(const std::string& key);

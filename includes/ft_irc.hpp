@@ -9,6 +9,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <limits.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>
