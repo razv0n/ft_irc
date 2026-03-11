@@ -28,10 +28,17 @@ void Channel::removeClient(client* member)
     if (it != members.end()) 
         members.erase(it);
 }
+Channel::~Channel()
+{
 
+}
 void Channel::addOperator(client* member)
 {
     this->operators.insert(member);
+}
+bool Channel::isOperator(client* member)
+{
+    return operators.count(member);
 }
 
 void Channel::removeOperator(client* member)
@@ -44,6 +51,10 @@ void Channel::removeOperator(client* member)
 void Channel::addInvite(client* member)
 {
     this->invites.insert(member);
+}
+bool Channel::channelEmpty()
+{
+    return members.empty();
 }
 
 void Channel::removeInvite(client* member)
@@ -159,10 +170,10 @@ std::string Channel::getKey() const
 }
 void Channel::brodcastMsg(std::string msg, client *sender) const
 {
-    std::string c_msg = sender->getNick() + ": " + msg + "\n";
+    // std::string c_msg = sender->getNick() + ": " + msg + "\n";
     for(std::set<client *>::iterator it = members.begin(); it != members.end(); it++)
     {
         if(*it != sender)
-            send((*it)->getFd(), c_msg.c_str(), c_msg.length(), 0);
+            send((*it)->getFd(), msg.c_str(), msg.length(), 0);
     }
 }

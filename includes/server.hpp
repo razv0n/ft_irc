@@ -32,9 +32,13 @@ class Server
 	void handlePing(int client_fd, const std::vector<std::string> &tokens);
 	void handleQuit(int client_fd, const std::string &command);
 	void handleJoin(int client_fd, const std::vector<std::string> &tokens);
+	void handlePart(int client_fd, const std::vector<std::string> &tokens);
 	void handlePrivmsg(int client_fd, const std::vector<std::string> &tokens);
-
+	void handleKick(int client_fd, const std::vector<std::string> &tokens);
+	void handleInvite(int client_fd, const std::vector<std::string> &tokens);
+	void handleTopic(int client_fd, const std::vector<std::string> &tokens);
 	void removeClient(int client_fd);
+	void handleMode(int client_fd, const std::vector<std::string> &tokens);
 	std::vector<std::string> splitCommand(const std::string &cmd);
 };
 

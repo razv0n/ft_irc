@@ -30,10 +30,12 @@ public:
     void addClient(client* client);
     void removeClient(client* client);
     void addOperator(client* client);
+    bool channelEmpty();
     void removeOperator(client* client);
     void addInvite(client* client);
     void removeInvite(client* client);
     void setTopic(const std::string& topic);
+    bool isOperator(client* member);
     void setKey(const std::string& key);
     void setLimit(int limit);
     void setInviteOnly(bool inviteOnly); // MODE +i
