@@ -276,7 +276,7 @@ void Server::handleTopic(int client_fd, const std::vector<std::string> &tokens)
         return;
     }
     size_t tokensSize = tokens.size();
-    if(tokensSize > 3 || tokensSize < 3)
+    if(tokensSize > 3)
     {
         std::string msg = "Usage: TOPIC <#channel>\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
