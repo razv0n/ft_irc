@@ -2,23 +2,11 @@
 void Server::handlePass(int client_fd, const std::vector<std::string> &tokens)
 {
     if (tokens.size() != 2)
-    {
-        std::string msg = "Usage: PASS <password>\r\n";
-        send(client_fd, msg.c_str(), msg.length(), 0);
-        return;
-    }
+        throw std::runtime_error("Usage: PASS <password>");
     if (clientsFds[client_fd]->getPassOk())
-    {
-        std::string msg = "You are already registered\r\n";
-        send(client_fd, msg.c_str(), msg.length(), 0);
-        return;
-    }
+        throw std::runtime_error("You are already registered");
     if (tokens[1] != password)
-    {
-        std::string msg = "Password is incorrect\r\n";
-        send(client_fd, msg.c_str(), msg.length(), 0);
-        return;
-    }
+        throw std::runtime_error("Password is incorrect");
     clientsFds[client_fd]->setPassOk(true);
-    send(client_fd,"the Password is correct\r\n",25,0);
+    throw std::runtime_error("the Password is correct");
 }

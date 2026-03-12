@@ -15,6 +15,11 @@ void Server::checkChannelExist(std::string channel_name)
     if(!channels.count(channel_name))
         throw std::runtime_error("the channel not found");
 }
+void Server::checkClientExist(std::string client_name)
+{
+    if(!clientsName.count(client_name))
+        throw std::runtime_error("the client not found");
+}
 void Server::checkIsOperator(std::string channel_name, client *member)
 {
     if(!channels[channel_name]->isOperator(member))
@@ -25,7 +30,7 @@ void Server::checkIsInvite(std::string channel_name, client *member)
     if(!channels[channel_name]->getInvites().count(member))
         throw std::runtime_error("you are not an invite list");
 }
-void Server::isRegistred(client *member)
+void Server::isRegistered(client *member)
 {
     if(!member->isRegistered())
         throw std::runtime_error("You are not registered");

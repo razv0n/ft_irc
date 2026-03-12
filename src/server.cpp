@@ -169,9 +169,9 @@ void Server::handleCommand(int client_fd, const std::string &command)
             send(client_fd, msg.c_str(), msg.length(), 0);
         }
     }
-    catch(...)
+    catch(const std::exception& e)
     {
-
+        sendMsg(client_fd, std::string("Error: ") + e.what());
     }
 }
 

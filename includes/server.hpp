@@ -45,7 +45,8 @@ void checkIsMember(std::string channel_name, client *member, std::string member_
 void checkIsOperator(std::string channel_name, client *member);
 void checkIsInvite(std::string , client *);
 void checkChannelExist(std::string channel_name);
-void isRegistred(client *member);
+void isRegistered(client *member);
+void checkClientExist(std::string client_name);
 	std::vector<std::string> splitCommand(const std::string &cmd);
 };
 

@@ -23,6 +23,7 @@ SRC = main.cpp\
 	  $(CMD_DIR)/quit.cpp\
 	  $(CMD_DIR)/topic.cpp\
 	  $(CMD_DIR)/user.cpp\
+	  $(CMD_DIR)/parseCmd.cpp\
 
 	  
 

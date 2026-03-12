@@ -1,7 +1,7 @@
 #include "../includes/server.hpp"
 void Server::handlePart(int client_fd, const std::vector<std::string> &tokens)
 {
-   isRegistred(clientsFds[client_fd]);
+   isRegistered(clientsFds[client_fd]);
     if(tokens.size() > 2 || tokens.size() < 3)
         throw std::runtime_error("Usage: PART <channel> :<msg>\r\n");
     std::string channel_name = tokens[1];

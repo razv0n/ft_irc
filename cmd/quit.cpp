@@ -3,15 +3,10 @@
 
 void Server::handleQuit(int client_fd, const std::string &command)
 {
-    // Parse quit message: everything after "QUIT" and optional ":"
     std::string quit_msg = "Client quit";
     size_t pos = command.find(':');
     if (pos != std::string::npos)
         quit_msg = command.substr(pos + 1);
-
-    // TODO: later when channels are implemented,
-    // notify all channel members about the quit
-
     removeClient(client_fd);
 }
 
