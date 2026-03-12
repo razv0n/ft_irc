@@ -171,15 +171,11 @@ void Server::handleCommand(int client_fd, const std::string &command)
     }
     catch(const std::exception& e)
     {
-        sendMsg(client_fd, std::string("Error: ") + e.what());
+        sendMsg(client_fd, e.what());
     }
 }
 
-// TODO split the cmd to the folders and structure the data 
-// TODO handle the user in the right way (ask some info)  check the ping pong and why it is exist
 // TODO add some debug on the server 7l9 3lih
-//TODO every msg should be end with \r\n
 // TODO test the code in irssi client
-//TODO split the cmd functions
 // TODO check the overflow of the long nm
-
+// TODO privmsg to member
