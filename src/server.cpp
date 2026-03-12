@@ -137,34 +137,41 @@ void Server::handleCommand(int client_fd, const std::string &command)
 
     std::string cmd = tokens[0];
 
-    if (cmd == "PING")
-        handlePing(client_fd, tokens);
-    else if (cmd == "QUIT")
-        handleQuit(client_fd, command);
-    else if (cmd == "PASS")
-        handlePass(client_fd, tokens);
-    else if (cmd == "NICK")
-        handleNick(client_fd, tokens);
-    else if (cmd == "USER")
-        handleUser(client_fd, tokens);
-    else if (cmd == "JOIN")
-        handleJoin(client_fd, tokens);
-    else if (cmd == "PRIVMSG")
-        handlePrivmsg(client_fd, tokens);
-    else if(cmd == "PART")
-        handlePart(client_fd, tokens);
-    else if(cmd == "KICK")
-        handleKick(client_fd, tokens);
-    else if(cmd == "INVITE")
-        handleInvite(client_fd, tokens);
-    else if(cmd == "TOPIC")
-        handleTopic(client_fd, tokens);
-    else if(cmd == "MODE")
-        handleMode(client_fd, tokens);
-    else
+    try{
+    
+        if (cmd == "PING")
+            handlePing(client_fd, tokens);
+        else if (cmd == "QUIT")
+            handleQuit(client_fd, command);
+        else if (cmd == "PASS")
+            handlePass(client_fd, tokens);
+        else if (cmd == "NICK")
+            handleNick(client_fd, tokens);
+        else if (cmd == "USER")
+            handleUser(client_fd, tokens);
+        else if (cmd == "JOIN")
+            handleJoin(client_fd, tokens);
+        else if (cmd == "PRIVMSG")
+            handlePrivmsg(client_fd, tokens);
+        else if(cmd == "PART")
+            handlePart(client_fd, tokens);
+        else if(cmd == "KICK")
+            handleKick(client_fd, tokens);
+        else if(cmd == "INVITE")
+            handleInvite(client_fd, tokens);
+        else if(cmd == "TOPIC")
+            handleTopic(client_fd, tokens);
+        else if(cmd == "MODE")
+            handleMode(client_fd, tokens);
+        else
+        {
+            std::string msg = "Unknown command : " + cmd + "\r\n";
+            send(client_fd, msg.c_str(), msg.length(), 0);
+        }
+    }
+    catch(...)
     {
-        std::string msg = "Unknown command : " + cmd + "\r\n";
-        send(client_fd, msg.c_str(), msg.length(), 0);
+        
     }
 }
 

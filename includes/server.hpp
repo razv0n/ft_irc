@@ -39,6 +39,13 @@ class Server
 	void handleTopic(int client_fd, const std::vector<std::string> &tokens);
 	void removeClient(int client_fd);
 	void handleMode(int client_fd, const std::vector<std::string> &tokens);
+
+	void checkChannelName(std::string channel_name);
+void checkIsMember(std::string channel_name, client *member, std::string member_name);
+void checkIsOperator(std::string channel_name, client *member);
+void checkIsInvite(std::string , client *);
+void checkChannelExist(std::string channel_name);
+void isRegistred(client *member);
 	std::vector<std::string> splitCommand(const std::string &cmd);
 };
 

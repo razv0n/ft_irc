@@ -1,36 +1,13 @@
 #include "../includes/server.hpp"
 void Server::handlePart(int client_fd, const std::vector<std::string> &tokens)
 {
-    if(!clientsFds[client_fd]->isRegistered())
-   {
-       std::string msg = "You are not registered\r\n";
-       send(client_fd, msg.c_str(), msg.length(), 0);
-       return;
-   }
+   isRegistred(clientsFds[client_fd]);
     if(tokens.size() > 2 || tokens.size() < 3)
-    {
-        send(client_fd, "Usage: PART <channel> :<msg>\r\n", 30, 0);
-        return;
-    }
+        throw std::runtime_error("Usage: PART <channel> :<msg>\r\n");
     std::string channel_name = tokens[1];
-    if(channel_name[0] != '#')
-    {
-        std::string msg = "Invalid channel name\r\n";
-        send(client_fd, msg.c_str(), msg.length(), 0);
-        return;
-    }
-    if(!channels.count(channel_name))
-    {
-        std::string msg = "the channel not found\r\n";
-        send(client_fd, msg.c_str(), msg.length(), 0);
-        return;
-    }
-    if(!channels[channel_name]->isMember(clientsFds[client_fd]))
-    {
-        std::string msg = "you are not a member inside this channel\r\n";
-        send(client_fd, msg.c_str(), msg.length(), 0);
-        return;
-    }
+    checkChannelName(channel_name);
+    checkChannelExist(channel_name);
+    checkIsMember(channel_name, clientsFds[client_fd], clientsFds[client_fd]->getNick());
     if(channels[channel_name]->getInvites().count(clientsFds[client_fd]))
         channels[channel_name]->removeInvite(clientsFds[client_fd]);
     if(channels[channel_name]->getOperators().count(clientsFds[client_fd]))

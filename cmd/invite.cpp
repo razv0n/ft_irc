@@ -3,16 +3,9 @@
 void Server::handleInvite(int client_fd, const std::vector<std::string> &tokens)
 {
     if(!clientsFds[client_fd]->isRegistered())
-    {
-        std::string msg = "You are not registered\r\n";
-        send(client_fd, msg.c_str(), msg.length(), 0);
-        return;
-    }
+        throw std::runtime_error("You are not registered");
     if(tokens.size() > 4 || tokens.size() < 3)
-    {
-        send(client_fd, "Usage: INVITE <nick> <#channel>\r\n", 30, 0);
-        return;
-    }
+       throw std::runtime_error("Usage: INVITE <nick> <#channel>");
     std::string channel_name = tokens[2];
     std::string invite_name = tokens[1];
 
@@ -46,7 +39,6 @@ void Server::handleInvite(int client_fd, const std::vector<std::string> &tokens)
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
-    std::string msg = ":" + clientsFds[client_fd]->getNick() + " INVITE " + invite_name + " " + channel_name + "\r\n";
-    send(clientsName[invite_name]->getFd(), msg.c_str(), msg.length(), 0);
     channels[channel_name]->addInvite(clientsFds[client_fd]);
+    throw std::runtime_error(":" + clientsFds[client_fd]->getNick() + " INVITE " + invite_name + " " + channel_name);
 }
