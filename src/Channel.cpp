@@ -77,6 +77,11 @@ void Channel::setTopic(const std::string& topic)
     this->topic = topic;
     this->is_topic_set = true;
 }
+void Channel::sendMsg(int member_fd, std::string msg)
+{
+    msg += "\r\n";
+    send(member_fd, msg.c_str(), msg.length(), 0);
+}
 
 void Channel::setKey(const std::string& key)
 {

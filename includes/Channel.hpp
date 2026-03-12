@@ -54,6 +54,7 @@ public:
     bool isTopicSet() const;
     bool isTopicProtected() const;
     bool isLimitSet() const;
+    void sendMsg(int member_fd, std::string msg);
     bool isMember(client* client) const;
     int getLimit() const;
     bool isKeySet() const;
