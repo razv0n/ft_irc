@@ -1,7 +1,5 @@
 
 #include "../includes/server.hpp"
-#include <sstream>
-#include <iostream>
 #include "../includes/client.hpp"
 
 Server::Server(int port, const std::string &password)
@@ -187,13 +185,13 @@ int isValidNm(std::string strNm)
 }
 void Server::handleMode(int client_fd, const std::vector<std::string> &tokens)
 {
-    if (!clientsFds[client_fd]->isRegistered())
+    if(!clientsFds[client_fd]->isRegistered())
     {
         std::string msg = "You are not registered\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
-    if (tokens.size() < 3 || tokens.size() > 4)
+    if(tokens.size() < 3 || tokens.size() > 4)
     {
         std::string msg = "Usage: MODE <#channel> +/-mode [parameter]\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
@@ -201,25 +199,25 @@ void Server::handleMode(int client_fd, const std::vector<std::string> &tokens)
     }
     std::string channel_name = tokens[1];
     std::string mode = tokens[2];
-    if (channel_name[0] != '#')
+    if(channel_name[0] != '#')
     {
         std::string msg = "Invalid channel name\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
-    if (!channels[channel_name]->isMember(clientsFds[client_fd]))
+    if(!channels[channel_name]->isMember(clientsFds[client_fd]))
     {
         std::string msg = "you are not a member inside this channel\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
-    if (!channels[channel_name]->isOperator(clientsFds[client_fd]))
+    if(!channels[channel_name]->isOperator(clientsFds[client_fd]))
     {
         std::string msg = "you are not an operator inside this channel\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
         return;
     }
-    if(mode.size() != 2 || mode[0] != '-' || mode[0] != '+')
+    if(mode.size() != 3 || mode[0] != '-' || mode[0] != '+')
     {
         std::string msg = "the mode is incorrect\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
@@ -302,7 +300,7 @@ void Server::handleTopic(int client_fd, const std::vector<std::string> &tokens)
         return;
     }
     size_t tokensSize = tokens.size();
-    if(tokensSize > 3 || tokensSize < 2)
+    if(tokensSize > 3)
     {
         std::string msg = "Usage: TOPIC <#channel>\r\n";
         send(client_fd, msg.c_str(), msg.length(), 0);
