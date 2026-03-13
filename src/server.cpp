@@ -178,4 +178,3 @@ void Server::handleCommand(int client_fd, const std::string &command)
 // TODO add some debug on the server 7l9 3lih
 // TODO test the code in irssi client
 // TODO check the overflow of the long nm
-// TODO privmsg to member
