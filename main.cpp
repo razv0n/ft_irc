@@ -12,6 +12,14 @@
 
 #include "./includes/ft_irc.hpp"
 
+bool g_server_shutdown = false;
+
+void signalHandler(int signum)
+{
+    (void)signum;
+    g_server_shutdown = true;
+}
+
 int main(int ac, char **av)
 {
     if (ac != 3)
@@ -19,7 +27,9 @@ int main(int ac, char **av)
         std::cerr << "Usage: " << av[0] << " <port> <password>" << std::endl;
         return 1;
     }
-
+    signal(SIGINT, signalHandler);
+    signal(SIGQUIT, signalHandler);
+    signal(SIGTERM, signalHandler);
     std::string port = av[1];
     std::string password = av[2];
     if (port.empty())

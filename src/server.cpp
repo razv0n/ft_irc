@@ -39,11 +39,15 @@ void Server::run()
     server_pollfd.events = POLLIN;
     server_pollfd.revents = 0;
     poll_fds.push_back(server_pollfd);
-    while (true)
+    while (!g_server_shutdown)
     {
         int poll_count = poll(&poll_fds[0], poll_fds.size(), -1);
         if (poll_count == -1)
         {
+            if (g_server_shutdown)
+                break;
+            if (errno == EINTR)
+                continue;
             throw std::runtime_error("poll failed");
         }
         for (size_t i = 0; i < poll_fds.size(); ++i)
@@ -74,11 +78,9 @@ void Server::run()
                     ssize_t bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
                     if (bytes_received <= 0)
                     {
-                        close(client_fd);
-                        delete clientsFds[client_fd];
-                        clientsFds.erase(client_fd);
-                        poll_fds.erase(poll_fds.begin() + i);
-                        --i;
+                        removeClient(client_fd);
+                        if (i > 0)
+                            --i;
                     }
                     else
                     {
@@ -102,10 +104,20 @@ void Server::run()
 Server::~Server()
 {
     for (std::map<int, client *>::iterator it = clientsFds.begin(); it != clientsFds.end(); ++it)
+    {
         delete it->second;
+    }
     clientsFds.clear();
+    for (std::map<std::string, Channel *>::iterator it = channels.begin(); it != channels.end(); ++it)
+    {
+        delete it->second;
+    }
+    channels.clear();
     if (server_fd != -1)
+    {
         close(server_fd);
+        server_fd = -1;
+    }
 }
 
 std::vector<std::string> Server::splitCommand(const std::string &cmd)
@@ -115,7 +127,7 @@ std::vector<std::string> Server::splitCommand(const std::string &cmd)
     std::string cmd_token = cmd;
     size_t find = cmd.find(":");
 
-    if(find != std::string::npos)
+    if (find != std::string::npos)
     {
         last_token = cmd.substr(find + 1);
         cmd_token = cmd.substr(0, find);
@@ -124,7 +136,7 @@ std::vector<std::string> Server::splitCommand(const std::string &cmd)
     std::string token;
     while (iss >> token)
         tokens.push_back(token);
-    if(!last_token.empty())
+    if (!last_token.empty())
         tokens.push_back(last_token);
     return tokens;
 }
@@ -137,8 +149,9 @@ void Server::handleCommand(int client_fd, const std::string &command)
 
     std::string cmd = tokens[0];
 
-    try{
-    
+    try
+    {
+
         if (cmd == "PING")
             handlePing(client_fd, tokens);
         else if (cmd == "QUIT")
@@ -153,15 +166,15 @@ void Server::handleCommand(int client_fd, const std::string &command)
             handleJoin(client_fd, tokens);
         else if (cmd == "PRIVMSG")
             handlePrivmsg(client_fd, tokens);
-        else if(cmd == "PART")
+        else if (cmd == "PART")
             handlePart(client_fd, tokens);
-        else if(cmd == "KICK")
+        else if (cmd == "KICK")
             handleKick(client_fd, tokens);
-        else if(cmd == "INVITE")
+        else if (cmd == "INVITE")
             handleInvite(client_fd, tokens);
-        else if(cmd == "TOPIC")
+        else if (cmd == "TOPIC")
             handleTopic(client_fd, tokens);
-        else if(cmd == "MODE")
+        else if (cmd == "MODE")
             handleMode(client_fd, tokens);
         else
         {
@@ -169,7 +182,7 @@ void Server::handleCommand(int client_fd, const std::string &command)
             send(client_fd, msg.c_str(), msg.length(), 0);
         }
     }
-    catch(const std::exception& e)
+    catch (const std::exception &e)
     {
         sendMsg(client_fd, e.what());
     }
