@@ -60,6 +60,7 @@ void Channel::addInvite(client* member)
 {
     this->invites.insert(member);
 }
+
 bool Channel::channelEmpty()
 {
     return members.empty();

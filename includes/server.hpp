@@ -44,9 +44,9 @@ class Server
 void checkIsMember(std::string channel_name, client *member, std::string member_name);
 void checkIsOperator(std::string channel_name, client *member);
 void checkIsInvite(std::string , client *);
-void checkChannelExist(std::string channel_name);
+void checkChannelExist(std::string channel_name,std::string member_name);
 void isRegistered(client *member);
-void checkClientExist(std::string client_name);
+void checkClientExist(std::string target_name, std::string requester_name);
 	std::vector<std::string> splitCommand(const std::string &cmd);
 };
 

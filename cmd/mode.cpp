@@ -13,15 +13,15 @@ void Server::handleMode(int client_fd, const std::vector<std::string> &tokens)
 {
     isRegistered(clientsFds[client_fd]);
     if(tokens.size() < 3 || tokens.size() > 4)
-        throw std::runtime_error("Usage: MODE <#channel> +/-mode [parameter]");
+        throw std::runtime_error(":ircserv 461 " + clientsFds[client_fd]->getNick() + " MODE :Not enough parameters");
     std::string channel_name = tokens[1];
     std::string mode = tokens[2];
     checkChannelName(channel_name, clientsFds[client_fd]->getNick());
-    checkChannelExist(channel_name);
+    checkChannelExist(channel_name, clientsFds[client_fd]->getNick());
     checkIsMember(channel_name, clientsFds[client_fd], "you");
     checkIsOperator(channel_name, clientsFds[client_fd]);
     if(mode[0] != '-' && mode[0] != '+')
-        throw std::runtime_error("the mode is incorrect");
+        throw std::runtime_error(":ircserv 472 " + clientsFds[client_fd]->getNick() + " " + mode + " :is unknown mode char to me");
     if(tokens.size() == 3)
     {
         if(mode[1] == 'i')
@@ -50,7 +50,7 @@ void Server::handleMode(int client_fd, const std::vector<std::string> &tokens)
         {
             int limit = isValidNm(tokens[3]);
             if(!limit)
-                throw std::runtime_error("the number is incorrect");
+                throw std::runtime_error(":ircserv 461 " + clientsFds[client_fd]->getNick() + " MODE :Invalid limit parameter");
             channels[channel_name]->setLimit(limit);
             channels[channel_name]->setLimitSet(true);
         }
@@ -62,6 +62,7 @@ void Server::handleMode(int client_fd, const std::vector<std::string> &tokens)
             else
                  channels[channel_name]->addOperator(clientsName[tokens[3]]);
         }
+        else
+            throw std::runtime_error(":ircserv 472 " + clientsFds[client_fd]->getNick() + " " + mode + " :is unknown mode char to me");
     }
-    throw std::runtime_error("the mode is incorrect");
 }
