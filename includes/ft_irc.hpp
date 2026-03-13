@@ -16,7 +16,11 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netdb.h>
+#include <cerrno>
 #include "server.hpp"
 #include "client.hpp"
+#include <csignal>
+
+extern bool g_server_shutdown;
 
 #endif
