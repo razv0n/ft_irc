@@ -14,23 +14,23 @@ void Server::removeClient(int client_fd)
 {
     std::string nick = clientsFds[client_fd]->getNick();
     // std::cout << "Client " << nick << " disconnected (fd=" << client_fd << ")" << std::endl;
-    delete clientsFds[client_fd];
-    clientsFds.erase(client_fd);
-    clientsName.erase(nick);
     for(std::map<std::string, Channel *>::iterator it = channels.begin(); it != channels.end(); it++)
     {
         if((it->second)->isMember(clientsFds[client_fd]))
-            (it->second)->removeClient(clientsFds[client_fd]);
+        (it->second)->removeClient(clientsFds[client_fd]);
         if((it->second)->getInvites().count(clientsFds[client_fd]))
-            (it->second)->removeInvite(clientsFds[client_fd]);
+        (it->second)->removeInvite(clientsFds[client_fd]);
         if((it->second)->getOperators().count(clientsFds[client_fd]))
-            (it->second)->removeOperator(clientsFds[client_fd]);
+        (it->second)->removeOperator(clientsFds[client_fd]);
         if((it->second)->channelEmpty())
         {
             delete channels[it->second->getName()];
             channels.erase(it->second->getName());
         }
     }
+    delete clientsFds[client_fd];
+    clientsFds.erase(client_fd);
+    clientsName.erase(nick);
     for (size_t i = 0; i < poll_fds.size(); ++i)
     {
         if (poll_fds[i].fd == client_fd)
