@@ -10,11 +10,11 @@ void Server::handlePrivmsg(int client_fd, const std::vector<std::string> &tokens
     {
         checkChannelExist(ChannelORclient);
         checkIsMember(ChannelORclient, clientsFds[client_fd], "you");
-        channels[ChannelORclient]->brodcastMsg(clientsFds[client_fd]->getNick() + " : " + tokens[2] + "\r\n", clientsFds[client_fd]);
+        channels[ChannelORclient]->brodcastMsg(":" + clientsFds[client_fd]->getNick() + " PRIVMSG " + ChannelORclient + " :" + tokens[2], clientsFds[client_fd]);
     }
     else
     {
         checkClientExist(ChannelORclient);
-        sendMsg(clientsName[tokens[2]]->getFd(), clientsFds[client_fd]->getNick() + " PRIVMSG " + ChannelORclient + " :" + tokens[2]);
+        sendMsg(clientsName[tokens[2]]->getFd(), ":" + clientsFds[client_fd]->getNick() + "!" + clientsFds[client_fd]->getUsername() + "@host PRIVMSG " + ChannelORclient + " :" + tokens[2]);
     }
 }

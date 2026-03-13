@@ -31,5 +31,5 @@ void Server::handleJoin(int client_fd, const std::vector<std::string> &tokens)
         }
         channels[channel_name]->addClient(clientsFds[client_fd]);
     }
-    throw std::runtime_error("Welcome " + clientsFds[client_fd]->getNick() + "!");
+    throw std::runtime_error(":ircserv 001 " + clientsFds[client_fd]->getNick() + " :Welcome to ft_irc!");
 }

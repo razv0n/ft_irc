@@ -151,7 +151,6 @@ void Server::handleCommand(int client_fd, const std::string &command)
 
     try
     {
-
         if (cmd == "PING")
             handlePing(client_fd, tokens);
         else if (cmd == "QUIT")
@@ -176,6 +175,8 @@ void Server::handleCommand(int client_fd, const std::string &command)
             handleTopic(client_fd, tokens);
         else if (cmd == "MODE")
             handleMode(client_fd, tokens);
+        else if(cmd == "CAP")
+            return;
         else
         {
             std::string msg = "Unknown command : " + cmd + "\r\n";

@@ -187,6 +187,6 @@ void Channel::brodcastMsg(std::string msg, client *sender) const
     for(std::set<client *>::iterator it = members.begin(); it != members.end(); it++)
     {
         if(*it != sender)
-            send((*it)->getFd(), msg.c_str(), msg.length(), 0);
+            sendMsg((*it)->getFd(), msg);
     }
 }
