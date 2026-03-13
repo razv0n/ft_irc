@@ -2,11 +2,11 @@
 void Server::handlePart(int client_fd, const std::vector<std::string> &tokens)
 {
    isRegistered(clientsFds[client_fd]);
-    if(tokens.size() > 2 || tokens.size() < 3)
+    if(tokens.size() < 2 || tokens.size() > 3)
         throw std::runtime_error("Usage: PART <channel> :<msg>\r\n");
     std::string channel_name = tokens[1];
     std::string msg = "";
-    checkChannelName(channel_name);
+    checkChannelName(channel_name, clientsFds[client_fd]->getNick());
     checkChannelExist(channel_name);
     checkIsMember(channel_name, clientsFds[client_fd], clientsFds[client_fd]->getNick());
     if(channels[channel_name]->getInvites().count(clientsFds[client_fd]))

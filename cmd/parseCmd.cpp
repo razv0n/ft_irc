@@ -1,14 +1,14 @@
 #include "../includes/server.hpp"
 
-void Server::checkChannelName(std::string channel_name)
+void Server::checkChannelName(std::string channel_name, std::string member_name)
 {
     if(channel_name[0] != '#')
-        throw std::runtime_error("Invalid channel name");
+        throw std::runtime_error(":ircserv 403 " + member_name + " " + channel_name + " :No such channel");
 }
 void Server::checkIsMember(std::string channel_name, client *member, std::string member_name)
 {
     if(!channels[channel_name]->isMember(member))
-        throw std::runtime_error("the " + member_name +"is not a member inside this channel");
+        throw std::runtime_error(":ircserv 442 " + member_name + " " + channel_name + " :You're not on that channel");
 }
 void Server::checkChannelExist(std::string channel_name)
 {

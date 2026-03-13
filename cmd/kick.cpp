@@ -5,7 +5,7 @@ void Server::handleKick(int client_fd, const std::vector<std::string> &tokens)
     if(tokens.size() > 4 || tokens.size() < 3)
         throw std::runtime_error("Usage: KICK <channel> <nick> :<msg>");
     std::string channel_name = tokens[1];
-    checkChannelName(channel_name);
+    checkChannelName(channel_name, clientsFds[client_fd]->getNick());
     checkChannelExist(channel_name);
     checkIsMember(channel_name, clientsFds[client_fd], "you");
     checkIsOperator(channel_name, clientsFds[client_fd]);

@@ -16,7 +16,7 @@ void Server::handleMode(int client_fd, const std::vector<std::string> &tokens)
         throw std::runtime_error("Usage: MODE <#channel> +/-mode [parameter]");
     std::string channel_name = tokens[1];
     std::string mode = tokens[2];
-    checkChannelName(channel_name);
+    checkChannelName(channel_name, clientsFds[client_fd]->getNick());
     checkChannelExist(channel_name);
     checkIsMember(channel_name, clientsFds[client_fd], "you");
     checkIsOperator(channel_name, clientsFds[client_fd]);
