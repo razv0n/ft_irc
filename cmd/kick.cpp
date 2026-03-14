@@ -7,10 +7,9 @@ void Server::handleKick(int client_fd, const std::vector<std::string> &tokens)
     std::string channel_name = tokens[1];
     checkChannelName(channel_name, clientsFds[client_fd]->getNick());
     checkChannelExist(channel_name,clientsFds[client_fd]->getNick());
-    checkIsMember(channel_name, clientsFds[client_fd], "you");
+    // checkIsMember(channel_name, clientsFds[client_fd], "you");
     checkIsOperator(channel_name, clientsFds[client_fd]);
     std::string kick_name = tokens[2];
-    checkClientExist(kick_name, clientsFds[client_fd]->getNick(), channel_name);
     checkIsMember(channel_name, clientsName[kick_name], kick_name);
     if(tokens[2] == clientsFds[client_fd]->getNick())
     {

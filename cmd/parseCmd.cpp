@@ -8,7 +8,7 @@ void Server::checkChannelName(std::string channel_name, std::string member_name)
 void Server::checkIsMember(std::string channel_name, client *member, std::string member_name)
 {
     if(!channels[channel_name]->isMember(member))
-        throw std::runtime_error(":ircserv 442 " + member_name + " " + channel_name + " :You're not on that channel");
+        throw std::runtime_error(":ircserv 442 " + channel_name + " " + member_name + " :not on that channel");
 }
 void Server::checkChannelExist(std::string channel_name, std::string member_name)
 {
@@ -19,10 +19,7 @@ void Server::checkChannelExist(std::string channel_name, std::string member_name
 void Server::checkClientExist(std::string target_name, std::string requester_name, std::string channel_name)
 {
     if(!clientsName.count(target_name))
-    {
-        // We put the channel_name in the middle so irssi routes it to that window
         throw std::runtime_error(":ircserv 401 " + requester_name + " " + channel_name + " :No such nick (" + target_name + ")");
-    }
 }
 void Server::checkIsOperator(std::string channel_name, client *member)
 {
