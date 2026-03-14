@@ -12,6 +12,21 @@ int isValidNm(std::string strNm)
 void Server::handleMode(int client_fd, const std::vector<std::string> &tokens)
 {
     isRegistered(clientsFds[client_fd]);
+    if (tokens.size() == 2) {
+        std::string target = tokens[1];
+        if (target[0] == '#') { // It's a channel
+            checkChannelExist(target, clientsFds[client_fd]->getNick());
+            
+            // Send the 324 reply (RPL_CHANNELMODEIS)
+            // Just send +t or +nt for now so Irssi is happy
+            std::string nick = clientsFds[client_fd]->getNick();
+            std::string rpl = ":ircserv 324 " + nick + " " + target + " +nt";
+            sendMsg(client_fd, rpl);
+            return; 
+        }
+        // If it's a nick, you can just ignore it or handle user modes
+        return;
+    }
     if(tokens.size() < 3 || tokens.size() > 4)
         throw std::runtime_error(":ircserv 461 " + clientsFds[client_fd]->getNick() + " MODE :Not enough parameters");
     std::string channel_name = tokens[1];

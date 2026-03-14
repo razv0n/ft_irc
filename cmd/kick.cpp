@@ -10,23 +10,20 @@ void Server::handleKick(int client_fd, const std::vector<std::string> &tokens)
     // checkIsMember(channel_name, clientsFds[client_fd], "you");
     checkIsOperator(channel_name, clientsFds[client_fd]);
     std::string kick_name = tokens[2];
-    // checkClientExist(kick_name, clientsFds[client_fd]->getNick());
-    std::cout << "checking kick name " << tokens[2] << std::endl;
     checkIsMember(channel_name, clientsName[kick_name], kick_name);
     if(tokens[2] == clientsFds[client_fd]->getNick())
-    {
-        std::string msg = "really nega :>\r\n";
-        send(client_fd, msg.c_str(), msg.length(), 0);
-        return;
-    }
-    if(channels[channel_name]->isOperator(clientsName[kick_name]))
-        channels[channel_name]->removeOperator(clientsName[kick_name]);
-    if(channels[channel_name]->isInviteOnly())
-        channels[channel_name]->removeInvite(clientsName[kick_name]);
-    channels[channel_name]->removeClient(clientsName[kick_name]);
+        throw std::runtime_error(":ircserv NOTICE " + clientsFds[client_fd]->getNick() + " :You cannot kick yourself. Please use the PART command to leave the channel");
+    client *kicked_client = clientsName[kick_name];
+    int kicked_fd = kicked_client->getFd();
     std::string msg = "";
     if(tokens.size() == 4)
         msg = tokens[3];
-    msg = ":" + clientsFds[client_fd]->getNick() + "!"+ clientsFds[client_fd]->getUsername() + " KICK "+ channel_name + kick_name + " :" + msg +"\r\n";
-    channels[channel_name]->brodcastMsg(msg, NULL);
+    msg = ":" + clientsFds[client_fd]->getNick() + "!"+ clientsFds[client_fd]->getUsername() + " KICK "+ channel_name + " " + kick_name + " :" + msg + "\r\n";
+    sendMsg(kicked_fd, msg);
+    channels[channel_name]->brodcastMsg(msg, kicked_client);
+    if(channels[channel_name]->isOperator(kicked_client))
+        channels[channel_name]->removeOperator(kicked_client);
+    if(channels[channel_name]->isInviteOnly())
+        channels[channel_name]->removeInvite(kicked_client);
+    channels[channel_name]->removeClient(kicked_client);
 }

@@ -21,7 +21,7 @@ void Server::handleJoin(int client_fd, const std::vector<std::string> &tokens)
     {
         if (channels[channel_name]->isKeySet() && channels[channel_name]->getKey() != key)
             throw std::runtime_error(":ircserv 475 " + clientsFds[client_fd]->getNick() + " " + channel_name + " :Cannot join channel (+k)");
-        else if(channels[channel_name]->isInviteOnly() && !channels[channel_name]->getInvites().count(clientsFds[client_fd]))
+        if(channels[channel_name]->isInviteOnly() && !channels[channel_name]->getInvites().count(clientsFds[client_fd]))
             throw std::runtime_error(":ircserv 473 " + clientsFds[client_fd]->getNick() + " " + channel_name + " :Cannot join channel (+i)");
         if(channels[channel_name]->isLimitSet())
         {
@@ -31,5 +31,16 @@ void Server::handleJoin(int client_fd, const std::vector<std::string> &tokens)
         }
         channels[channel_name]->addClient(clientsFds[client_fd]);
     }
-    throw std::runtime_error(":ircserv 001 " + clientsFds[client_fd]->getNick() + " :Welcome to ft_irc!");
+
+    std::string nick = clientsFds[client_fd]->getNick();
+    std::string user = clientsFds[client_fd]->getUsername();
+    
+    std::string join_echo = ":" + nick + "!" + user + "@localhost JOIN :" + channel_name;
+    sendMsg(client_fd, join_echo);
+
+    // std::string rpl_353 = ":ircserv 353 " + nick + " = " + channel_name + " :@" + nick;
+    // sendMsg(client_fd, rpl_353);
+
+    // std::string rpl_366 = ":ircserv 366 " + nick + " " + channel_name + " :End of /NAMES list";
+    // sendMsg(client_fd, rpl_366);
 }
