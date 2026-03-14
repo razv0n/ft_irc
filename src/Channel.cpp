@@ -78,11 +78,24 @@ void Channel::setTopic(const std::string& topic)
     this->topic = topic;
     this->is_topic_set = true;
 }
+
 void sendMsg(int member_fd, std::string msg)
 {
     msg += "\r\n";
-    send(member_fd, msg.c_str(), msg.length(), 0);
+    ssize_t bytes = send(member_fd, msg.c_str(), msg.length(), 0);
+    
+    if (bytes == -1) {
+        std::cerr << "Error: send() failed on FD " << member_fd << std::endl;
+    } else {
+        std::cout << "DEBUG: Sent " << bytes << " bytes to FD " << member_fd << " -> " << msg;
+    }
 }
+
+// void sendMsg(int member_fd, std::string msg)
+// {
+//     msg += "\r\n";
+//     send(member_fd, msg.c_str(), msg.length(), 0);
+// }
 
 void Channel::setKey(const std::string& key)
 {

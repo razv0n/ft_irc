@@ -15,10 +15,14 @@ void Server::checkChannelExist(std::string channel_name, std::string member_name
     if(!channels.count(channel_name))
         throw std::runtime_error(":ircserv 403 " + member_name + " " + channel_name + " :No such channel");
 }
-void Server::checkClientExist(std::string target_name, std::string requester_name)
+// Pass the channel_name into the function
+void Server::checkClientExist(std::string target_name, std::string requester_name, std::string channel_name)
 {
     if(!clientsName.count(target_name))
-        throw std::runtime_error(":ircserv 401 " + requester_name + " " + target_name + " :No such nick/channel");
+    {
+        // We put the channel_name in the middle so irssi routes it to that window
+        throw std::runtime_error(":ircserv 401 " + requester_name + " " + channel_name + " :No such nick (" + target_name + ")");
+    }
 }
 void Server::checkIsOperator(std::string channel_name, client *member)
 {

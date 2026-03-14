@@ -11,7 +11,7 @@ void Server::handleInvite(int client_fd, const std::vector<std::string> &tokens)
     checkChannelName(channel_name, clientsFds[client_fd]->getNick());
     checkChannelExist(channel_name, clientsFds[client_fd]->getNick());
     checkIsOperator(channel_name, clientsFds[client_fd]);
-    checkClientExist(invite_name, clientsFds[client_fd]->getNick());
+    checkClientExist(invite_name, clientsFds[client_fd]->getNick(), channel_name);
     channels[channel_name]->addInvite(clientsName[invite_name]);
     std::string msg = ":" + clientsFds[client_fd]->getNick() + " INVITE " + invite_name + " " + channel_name;
     sendMsg(clientsName[invite_name]->getFd(), msg);

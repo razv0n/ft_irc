@@ -14,7 +14,7 @@ void Server::handlePrivmsg(int client_fd, const std::vector<std::string> &tokens
     }
     else
     {
-        checkClientExist(clientsFds[client_fd]->getNick(),ChannelORclient);
+        checkClientExist(ChannelORclient, clientsFds[client_fd]->getNick(), ChannelORclient);
         sendMsg(clientsName[tokens[1]]->getFd(), ":" + clientsFds[client_fd]->getNick() + "!" + clientsFds[client_fd]->getUsername() + "@host PRIVMSG " + ChannelORclient + " :" + tokens[2]);
     }
 }
