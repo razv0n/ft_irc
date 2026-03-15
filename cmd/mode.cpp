@@ -37,6 +37,8 @@ void Server::handleMode(int client_fd, const std::vector<std::string> &tokens)
     checkIsOperator(channel_name, clientsFds[client_fd]);
     if(mode[0] != '-' && mode[0] != '+')
         throw std::runtime_error(":ircserv 472 " + clientsFds[client_fd]->getNick() + " " + mode + " :is unknown mode char to me");
+    if(mode.length() < 2)
+        throw std::runtime_error(":ircserv 472 " + clientsFds[client_fd]->getNick() + " " + mode + " :is unknown mode char to me");
     if(tokens.size() == 3)
     {
         if(mode[1] == 'i')
@@ -80,4 +82,7 @@ void Server::handleMode(int client_fd, const std::vector<std::string> &tokens)
         else
             throw std::runtime_error(":ircserv 472 " + clientsFds[client_fd]->getNick() + " " + mode + " :is unknown mode char to me");
     }
+    std::string rpl = ":ircserv 324 " + clientsFds[client_fd]->getNick() + " " + channel_name + " " + mode;
+    sendMsg(client_fd, rpl);
+    channels[channel_name]->brodcastMsg(":" + clientsFds[client_fd]->getNick() + " MODE " + channel_name + " " + mode, NULL);
 }

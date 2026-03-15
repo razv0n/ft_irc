@@ -18,7 +18,7 @@ void Server::handleKick(int client_fd, const std::vector<std::string> &tokens)
     std::string msg = "";
     if(tokens.size() == 4)
         msg = tokens[3];
-    msg = ":" + clientsFds[client_fd]->getNick() + "!"+ clientsFds[client_fd]->getUsername() + " KICK "+ channel_name + " " + kick_name + " :" + msg + "\r\n";
+    msg = ":" + clientsFds[client_fd]->getNick() + "!"+ clientsFds[client_fd]->getUsername() + " KICK "+ channel_name + " " + kick_name + " :" + msg;
     sendMsg(kicked_fd, msg);
     channels[channel_name]->brodcastMsg(msg, kicked_client);
     if(channels[channel_name]->isOperator(kicked_client))

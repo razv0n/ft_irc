@@ -16,5 +16,8 @@ void Server::handleUser(int client_fd, const std::vector<std::string> &tokens)
     // clientsFds[client_fd]->setHostname(tokens[2]);
     clientsFds[client_fd]->setUserOk(true); // we dont need to check this USEROK mean the setregistred is ok :>
     clientsFds[client_fd]->setRegistered(true);
+    // Send user modes
+    std::string rpl_221 = ":ircserv 221 " + clientsFds[client_fd]->getNick() + " +i";
+    sendMsg(client_fd, rpl_221);
     throw std::runtime_error(":ircserv 001 " + clientsFds[client_fd]->getNick() + " :Welcome to ft_irc!");
 }

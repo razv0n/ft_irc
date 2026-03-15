@@ -14,6 +14,7 @@ void Server::handleJoin(int client_fd, const std::vector<std::string> &tokens)
     if (!channels.count(channel_name))
     {
         channels[channel_name] = new Channel(channel_name, clientsFds[client_fd]);
+        channels[channel_name]->incLimit();
         if(!key.empty())
             channels[channel_name]->setKey(key);
     }
@@ -36,11 +37,28 @@ void Server::handleJoin(int client_fd, const std::vector<std::string> &tokens)
     std::string user = clientsFds[client_fd]->getUsername();
     
     std::string join_echo = ":" + nick + "!" + user + "@localhost JOIN :" + channel_name;
+    
+    // Send JOIN echo to the joining client first
     sendMsg(client_fd, join_echo);
+    
+    // Broadcast JOIN to other channel members
+    channels[channel_name]->brodcastMsg(join_echo, clientsFds[client_fd]);
 
-    // std::string rpl_353 = ":ircserv 353 " + nick + " = " + channel_name + " :@" + nick;
-    // sendMsg(client_fd, rpl_353);
+    // Build NAMES list with all members
+    std::string names_list = "";
+    std::set<client*> members = channels[channel_name]->getClients();
+    for(std::set<client*>::iterator it = members.begin(); it != members.end(); it++)
+    {
+        if(it != members.begin())
+            names_list += " ";
+        if(channels[channel_name]->isOperator(*it))
+            names_list += "@";
+        names_list += (*it)->getNick();
+    }
+    
+    std::string rpl_353 = ":ircserv 353 " + nick + " = " + channel_name + " :" + names_list;
+    sendMsg(client_fd, rpl_353);
 
-    // std::string rpl_366 = ":ircserv 366 " + nick + " " + channel_name + " :End of /NAMES list";
-    // sendMsg(client_fd, rpl_366);
+    std::string rpl_366 = ":ircserv 366 " + nick + " " + channel_name + " :End of /NAMES list";
+    sendMsg(client_fd, rpl_366);
 }

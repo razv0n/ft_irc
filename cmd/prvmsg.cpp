@@ -6,6 +6,8 @@ void Server::handlePrivmsg(int client_fd, const std::vector<std::string> &tokens
     if(tokens.size() != 3)
         throw std::runtime_error(":ircserv 461 " + clientsFds[client_fd]->getNick() + " PRIVMSG :Not enough parameters");
     std::string ChannelORclient = tokens[1];
+    if(ChannelORclient.empty())
+        throw std::runtime_error(":ircserv 401 " + clientsFds[client_fd]->getNick() + " " + ChannelORclient + " :No such nick");
     if(ChannelORclient[0] == '#')
     {
         checkChannelExist(ChannelORclient, clientsFds[client_fd]->getNick());

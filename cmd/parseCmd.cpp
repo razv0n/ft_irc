@@ -2,7 +2,7 @@
 
 void Server::checkChannelName(std::string channel_name, std::string member_name)
 {
-    if(channel_name[0] != '#')
+    if(channel_name.empty() || channel_name[0] != '#')
         throw std::runtime_error(":ircserv 403 " + member_name + " " + channel_name + " :No such channel");
 }
 void Server::checkIsMember(std::string channel_name, client *member, std::string member_name)
