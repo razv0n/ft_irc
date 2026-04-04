@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "./includes/ft_irc.hpp"
+#include <cstdlib>
 
 bool g_server_shutdown = false;
 
@@ -45,7 +46,7 @@ int main(int ac, char **av)
             return 1;
         }
     }
-    int port_num = std::atoi(port.c_str());
+    double port_num = std::strtod(port.c_str(), NULL);
     if (port_num < 1024 || port_num > 65535)
     {
         std::cerr << "Port must be between 1024 and 65535" << std::endl;
