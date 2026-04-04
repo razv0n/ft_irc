@@ -141,21 +141,6 @@ std::vector<std::string> Server::splitCommand(const std::string &cmd)
     return tokens;
 }
 
-// void Server::handleWho(int client_fd, const std::vector<std::string> &tokens)
-// {
-//     if (tokens.size() < 2)
-//         return; // Or send a basic ERR_NEEDMOREPARAMS
-
-//     std::cout << "handleWho" << std::endl;  
-//     std::string nick = clientsFds[client_fd]->getNick();
-//     std::string target = tokens[1];
-
-//     // For now, we just tell Irssi "The list is empty/finished" 
-//     // This is enough to make the client stop waiting.
-//     std::string rpl_315 = ":ircserv 315 " + nick + " " + target + " :End of /WHO list";
-//     sendMsg(client_fd, rpl_315);
-// }
-
 void Server::handleCommand(int client_fd, const std::string &command)
 {
     std::vector<std::string> tokens = splitCommand(command);
@@ -190,8 +175,6 @@ void Server::handleCommand(int client_fd, const std::string &command)
             handleTopic(client_fd, tokens);
         else if (cmd == "MODE")
             handleMode(client_fd, tokens);
-        // else if (cmd == "WHO")
-        //     handleWho(client_fd, tokens);
         else if(cmd == "CAP")
             return;
         else

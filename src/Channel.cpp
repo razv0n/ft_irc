@@ -1,5 +1,6 @@
 #include "../includes/Channel.hpp"
 #include "../includes/client.hpp"
+
 Channel::Channel(const std::string& name, client* creator)
 {
     this->name = name;
