@@ -5,12 +5,17 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: mfahmi <mfahmi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/02/12 09:23:27 by mowardan          #+#    #+#             */
-/*   Updated: 2026/03/08 10:23:04 by mfahmi           ###   ########.fr       */
+/*   Created: 2026/02/12 09:23:27 by mfahmi            #+#    #+#             */
+/*   Updated: 2026/04/01 15:27:08 by mfahmi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "./includes/ft_irc.hpp"
+//todo handle client hungup
+//todo read the  and serch on the concept
+//todo handle the overlflow to the atoi function
+//todo check the signal, and add the who cmd
+//todo made a mini server
 
 bool g_server_shutdown = false;
 
@@ -45,7 +50,8 @@ int main(int ac, char **av)
             return 1;
         }
     }
-    int port_num = std::atoi(port.c_str());
+    int port_num = std::atoi(port.c_str()); // check the overflow
+    // std::cout << port_num << std::endl;
     if (port_num < 1024 || port_num > 65535)
     {
         std::cerr << "Port must be between 1024 and 65535" << std::endl;

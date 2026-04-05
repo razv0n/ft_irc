@@ -39,10 +39,10 @@ void Server::handleJoin(int client_fd, const std::vector<std::string> &tokens)
     std::string join_echo = ":" + nick + "!" + user + "@localhost JOIN :" + channel_name;
     
     // Send JOIN echo to the joining client first
-    sendMsg(client_fd, join_echo);
+    // sendMsg(client_fd, join_echo);
     
     // Broadcast JOIN to other channel members
-    channels[channel_name]->brodcastMsg(join_echo, clientsFds[client_fd]);
+    channels[channel_name]->brodcastMsg(join_echo, NULL);
 
     // Build NAMES list with all members
     std::string names_list = "";
@@ -55,10 +55,8 @@ void Server::handleJoin(int client_fd, const std::vector<std::string> &tokens)
             names_list += "@";
         names_list += (*it)->getNick();
     }
-    
     std::string rpl_353 = ":ircserv 353 " + nick + " = " + channel_name + " :" + names_list;
     sendMsg(client_fd, rpl_353);
-
     std::string rpl_366 = ":ircserv 366 " + nick + " " + channel_name + " :End of /NAMES list";
     sendMsg(client_fd, rpl_366);
 }

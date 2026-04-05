@@ -86,16 +86,9 @@ void sendMsg(int member_fd, std::string msg)
     
     if (bytes == -1) {
         std::cerr << "Error: send() failed on FD " << member_fd << std::endl;
-    } else {
-        std::cout << "DEBUG: Sent " << bytes << " bytes to FD " << member_fd << " -> " << msg;
     }
 }
 
-// void sendMsg(int member_fd, std::string msg)
-// {
-//     msg += "\r\n";
-//     send(member_fd, msg.c_str(), msg.length(), 0);
-// }
 
 void Channel::setKey(const std::string& key)
 {
@@ -197,7 +190,6 @@ std::string Channel::getKey() const
 }
 void Channel::brodcastMsg(std::string msg, client *sender) const
 {
-    // std::string c_msg = sender->getNick() + ": " + msg + "\n";
     for(std::set<client *>::iterator it = members.begin(); it != members.end(); it++)
     {
         if(*it != sender)

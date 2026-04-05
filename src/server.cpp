@@ -11,9 +11,8 @@ Server::Server(int port, const std::string &password)
 
 void Server::run()
 {
-    // TODO: implement the server loop
 
-    server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    server_fd = socket(AF_INET, SOCK_STREAM, 0); // todo search about the ip version
     if (server_fd == -1)
     {
         throw std::runtime_error("socket creation failed");
@@ -29,7 +28,7 @@ void Server::run()
     {
         throw std::runtime_error("bind failed");
     }
-    if (listen(server_fd, 128) == -1)
+    if (listen(server_fd, SOMAXCONN) == -1)
     {
         throw std::runtime_error("listen failed");
     }
@@ -46,13 +45,16 @@ void Server::run()
         {
             if (g_server_shutdown)
                 break;
-            if (errno == EINTR)
-                continue;
-            throw std::runtime_error("poll failed");
+            throw std::runtime_error("poll failed");    
         }
         for (size_t i = 0; i < poll_fds.size(); ++i)
         {
-            if (poll_fds[i].revents & POLLIN)
+            if(poll_fds[i].revents & (POLLHUP | POLLERR | POLLNVAL))
+            {
+                removeClient(poll_fds[i].fd);
+                continue;
+            }
+            else if (poll_fds[i].revents & POLLIN)
             {
                 if (poll_fds[i].fd == server_fd)
                 {
@@ -141,21 +143,6 @@ std::vector<std::string> Server::splitCommand(const std::string &cmd)
     return tokens;
 }
 
-// void Server::handleWho(int client_fd, const std::vector<std::string> &tokens)
-// {
-//     if (tokens.size() < 2)
-//         return; // Or send a basic ERR_NEEDMOREPARAMS
-
-//     std::cout << "handleWho" << std::endl;  
-//     std::string nick = clientsFds[client_fd]->getNick();
-//     std::string target = tokens[1];
-
-//     // For now, we just tell Irssi "The list is empty/finished" 
-//     // This is enough to make the client stop waiting.
-//     std::string rpl_315 = ":ircserv 315 " + nick + " " + target + " :End of /WHO list";
-//     sendMsg(client_fd, rpl_315);
-// }
-
 void Server::handleCommand(int client_fd, const std::string &command)
 {
     std::vector<std::string> tokens = splitCommand(command);
@@ -190,8 +177,6 @@ void Server::handleCommand(int client_fd, const std::string &command)
             handleTopic(client_fd, tokens);
         else if (cmd == "MODE")
             handleMode(client_fd, tokens);
-        // else if (cmd == "WHO")
-        //     handleWho(client_fd, tokens);
         else if(cmd == "CAP")
             return;
         else
@@ -205,7 +190,3 @@ void Server::handleCommand(int client_fd, const std::string &command)
         sendMsg(client_fd, e.what());
     }
 }
-
-// TODO add some debug on the server 7l9 3lih
-// TODO test the code in irssi client
-// TODO check the overflow of the long nm

@@ -1,4 +1,5 @@
 #include "../includes/server.hpp"
+
 void Server::handleKick(int client_fd, const std::vector<std::string> &tokens)
 {
     isRegistered(clientsFds[client_fd]);
