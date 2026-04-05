@@ -15,10 +15,13 @@ void Server::handleNick(int client_fd, const std::vector<std::string> &tokens)
         while (it != channels.end())
         {
             if ((it->second)->isMember(clientsFds[client_fd]))
+            {
                 (it->second)->brodcastMsg(":" + old_nick + " NICK :" + new_nick, NULL);
+            }
             it++;
         }
         clientsName.erase(old_nick);
+        sendMsg(client_fd, ":" + old_nick + " NICK :" + new_nick);
     }
     else
         clientsFds[client_fd]->setNickOk(true);

@@ -37,14 +37,9 @@ void Server::handleJoin(int client_fd, const std::vector<std::string> &tokens)
     std::string user = clientsFds[client_fd]->getUsername();
     
     std::string join_echo = ":" + nick + "!" + user + "@localhost JOIN :" + channel_name;
-    
-    // Send JOIN echo to the joining client first
-    // sendMsg(client_fd, join_echo);
-    
-    // Broadcast JOIN to other channel members
-    channels[channel_name]->brodcastMsg(join_echo, NULL);
+    sendMsg(client_fd, join_echo);
+    channels[channel_name]->brodcastMsg(join_echo, clientsFds[client_fd]);
 
-    // Build NAMES list with all members
     std::string names_list = "";
     std::set<client*> members = channels[channel_name]->getClients();
     for(std::set<client*>::iterator it = members.begin(); it != members.end(); it++)

@@ -8,7 +8,8 @@
 
 class client;
 
-class Channel {
+class Channel 
+{
 private:
     // Amine and monsif need to see this;
     std::string name; // #channel

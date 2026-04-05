@@ -1,5 +1,6 @@
 #include "../includes/Channel.hpp"
 #include "../includes/client.hpp"
+
 Channel::Channel(const std::string& name, client* creator)
 {
     this->name = name;
@@ -82,10 +83,10 @@ void Channel::setTopic(const std::string& topic)
 void sendMsg(int member_fd, std::string msg)
 {
     msg += "\r\n";
-    ssize_t bytes = send(member_fd, msg.c_str(), msg.length(), 0);
-    
-    if (bytes == -1) {
-        std::cerr << "Error: send() failed on FD " << member_fd << std::endl;
+    if (send(member_fd, msg.c_str(), msg.length(), MSG_NOSIGNAL) == -1)
+    {
+        if(errno == EPIPE || errno == ECONNRESET)
+            throw std::runtime_error("");
     }
 }
 
@@ -93,7 +94,7 @@ void sendMsg(int member_fd, std::string msg)
 void Channel::setKey(const std::string& key)
 {
     this->key = key;
-    this->is_key_set = true;
+    this->is_key_set = true;    
 }
 
 void Channel::setLimit(int limit)

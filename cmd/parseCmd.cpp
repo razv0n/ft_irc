@@ -15,7 +15,6 @@ void Server::checkChannelExist(std::string channel_name, std::string member_name
     if(!channels.count(channel_name))
         throw std::runtime_error(":ircserv 403 " + member_name + " " + channel_name + " :No such channel");
 }
-// Pass the channel_name into the function
 void Server::checkClientExist(std::string target_name, std::string requester_name, std::string channel_name)
 {
     if(!clientsName.count(target_name))

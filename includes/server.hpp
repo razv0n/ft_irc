@@ -15,6 +15,7 @@ class Server
 		int server_fd;
 		int port;
 		std::string password;
+		size_t i_poll;
 		std::vector<struct pollfd> poll_fds;
 		std::map<int, client*> clientsFds;
 		std::map<std::string, client*> clientsName;

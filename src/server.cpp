@@ -12,7 +12,7 @@ Server::Server(int port, const std::string &password)
 void Server::run()
 {
 
-    server_fd = socket(AF_INET, SOCK_STREAM, 0); // todo search about the ip version
+    server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd == -1)
     {
         throw std::runtime_error("socket creation failed");
@@ -47,7 +47,8 @@ void Server::run()
                 break;
             throw std::runtime_error("poll failed");    
         }
-        for (size_t i = 0; i < poll_fds.size(); ++i)
+        i_poll = 0;
+        for (size_t &i = i_poll; i < poll_fds.size(); ++i)
         {
             if(poll_fds[i].revents & (POLLHUP | POLLERR | POLLNVAL))
             {
@@ -79,11 +80,7 @@ void Server::run()
                     char buffer[1024];
                     ssize_t bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
                     if (bytes_received <= 0)
-                    {
                         removeClient(client_fd);
-                        if (i > 0)
-                            --i;
-                    }
                     else
                     {
                         std::string data(buffer, bytes_received);
@@ -182,11 +179,18 @@ void Server::handleCommand(int client_fd, const std::string &command)
         else
         {
             std::string msg = "Unknown command : " + cmd + "\r\n";
-            send(client_fd, msg.c_str(), msg.length(), 0);
+            if(send(client_fd, msg.c_str(), msg.length(), MSG_NOSIGNAL) == -1)
+            {
+                if(errno == EPIPE || errno == ECONNRESET)
+                    removeClient(client_fd);
+            }
         }
     }
     catch (const std::exception &e)
     {
-        sendMsg(client_fd, e.what());
+        if(*e.what() == '\0')
+            removeClient(client_fd);
+        else
+            sendMsg(client_fd, e.what());
     }
 }

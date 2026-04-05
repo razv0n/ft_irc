@@ -3,7 +3,7 @@
 
 void Server::handleQuit(int client_fd, const std::string &command) {
   std::string quit_msg = "Client quit";
-  size_t pos = command.find(':');// remove it
+  size_t pos = command.find(':');
   if (pos != std::string::npos)
     quit_msg = command.substr(pos + 1);
   removeClient(client_fd);
@@ -40,6 +40,8 @@ void Server::removeClient(int client_fd)
   for (size_t i = 0; i < poll_fds.size(); ++i) {
     if (poll_fds[i].fd == client_fd) {
       poll_fds.erase(poll_fds.begin() + i);
+      if(i_poll > 0)
+        i_poll--;
       break;
     }
   }
