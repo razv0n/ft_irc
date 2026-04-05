@@ -1,6 +1,7 @@
 #include "../includes/server.hpp"
 void Server::handleNick(int client_fd, const std::vector<std::string> &tokens)
 {
+    bool flag = true;
     std::string old_nick = clientsFds[client_fd]->getNickOk() ? clientsFds[client_fd]->getNick() : "*";
     if (tokens.size() != 2)
         throw std::runtime_error(":ircserv 431 " + old_nick + " :No nickname given");
@@ -17,11 +18,13 @@ void Server::handleNick(int client_fd, const std::vector<std::string> &tokens)
             if ((it->second)->isMember(clientsFds[client_fd]))
             {
                 (it->second)->brodcastMsg(":" + old_nick + " NICK :" + new_nick, NULL);
+                flag = false;
             }
             it++;
         }
         clientsName.erase(old_nick);
-        sendMsg(client_fd, ":" + old_nick + " NICK :" + new_nick);
+        if (flag)
+          sendMsg(client_fd, ":" + old_nick + " NICK :" + new_nick);
     }
     else
         clientsFds[client_fd]->setNickOk(true);

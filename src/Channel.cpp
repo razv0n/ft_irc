@@ -189,6 +189,7 @@ std::string Channel::getKey() const
 {
     return this->key;
 }
+
 void Channel::brodcastMsg(std::string msg, client *sender) const
 {
     for(std::set<client *>::iterator it = members.begin(); it != members.end(); it++)

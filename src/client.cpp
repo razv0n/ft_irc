@@ -25,7 +25,6 @@ client::~client()
 void client::appendToBuffer(const std::string &data)
 {
     buffer += data;
-    std::cout << "Buffer for client " << client_fd << ": " << data << std::endl;
 }
 
 std::string client::extractCommand()
